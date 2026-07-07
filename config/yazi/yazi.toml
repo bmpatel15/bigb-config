@@ -7,3 +7,26 @@ sort_dir_first = true
 linemode = "size"
 show_hidden = false
 show_symlink = true
+
+[opener]
+edit = [
+	{ run = 'nvim "$@"', desc = "nvim", block = true },
+]
+
+[open]
+prepend_rules = [
+	# config-ish extensions MIME detection often misses
+	{ url = "*.conf",    use = "edit" },
+	{ url = "*.toml",    use = "edit" },
+	{ url = "*.ini",     use = "edit" },
+	{ url = "*.lua",     use = "edit" },
+	{ url = "*.yml",     use = "edit" },
+	{ url = "*.yaml",    use = "edit" },
+	{ url = "*.json",    use = "edit" },
+	{ url = "*rc",       use = "edit" },      # .zshrc, zathurarc, …
+	{ url = "*.desktop", use = "edit" },
+	{ url = "*.service", use = "edit" },
+	# anything detected as text, plus empty files
+	{ mime = "text/*",        use = "edit" },
+	{ mime = "inode/x-empty", use = "edit" },
+]

@@ -133,6 +133,7 @@ command -v fzf    >/dev/null && source <(fzf --zsh)
 command -v fnm    >/dev/null && eval "$(fnm env --use-on-cd)"
 
 # ── Aliases ────────────────────────────────────────────────────────────
+alias home='cd ~'
 alias config='cd ~/.config'
 alias ov='cd ~/Documents/BigB-PKM/'
 alias reload='exec zsh'
@@ -167,3 +168,16 @@ alias gco='git checkout'
 alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
+
+# ── Yazi ───────────────────────────────────────────────────────────────
+# quitting with `q` drops the shell into yazi's last directory (Q quits without cd)
+y() {
+  local tmp cwd
+  tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
+  command yazi "$@" --cwd-file="$tmp"
+  if cwd="$(command cat -- "$tmp")" && [[ -n "$cwd" && "$cwd" != "$PWD" ]]; then
+    builtin cd -- "$cwd"
+  fi
+  rm -f -- "$tmp"
+}
+alias yazi='y'

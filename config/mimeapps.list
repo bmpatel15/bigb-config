@@ -10,6 +10,7 @@ application/xhtml+xml=chromium.desktop
 application/x-extension-xhtml=chromium.desktop
 application/x-extension-xht=chromium.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
+application/pdf=org.pwmt.zathura.desktop
 
 [Added Associations]
 x-scheme-handler/http=chromium.desktop;
