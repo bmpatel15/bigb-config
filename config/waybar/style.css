@@ -1,0 +1,159 @@
+/* Waybar — floating islands (Omarchy Ethereal: navy + lavender/peach)
+ * Saved changes apply live (reload_style_on_change). */
+
+@define-color bg    rgba(6, 11, 30, 0.85);
+@define-color fg    #ffcead;
+@define-color blue  #7d82d9;
+@define-color pink  #c89dc1;
+@define-color muted #6d7db6;
+
+* {
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+}
+
+window#waybar {
+  background: transparent;
+  color: @fg;
+}
+
+/* The three islands */
+.modules-left,
+.modules-center,
+.modules-right {
+  background: @bg;
+  border-radius: 17px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 6px;
+}
+
+/* Modules */
+#clock,
+#mpris,
+#cpu,
+#memory,
+#temperature,
+#network,
+#bluetooth,
+#pulseaudio,
+#backlight,
+#battery,
+#tray,
+#custom-power,
+#submap {
+  padding: 0 10px;
+  border-radius: 13px;
+}
+
+/* Hover feedback on clickable modules */
+#clock:hover,
+#mpris:hover,
+#cpu:hover,
+#memory:hover,
+#network:hover,
+#bluetooth:hover,
+#pulseaudio:hover,
+#backlight:hover,
+#custom-power:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Accents */
+#clock {
+  color: @fg;
+}
+
+#mpris {
+  color: @pink;
+}
+
+#custom-power {
+  color: @pink;
+  padding-right: 13px;
+}
+
+/* Workspace dots */
+#workspaces button {
+  padding: 0 7px;
+  color: @fg;
+  background: transparent;
+  border-radius: 13px;
+  transition: color 0.2s ease;
+}
+
+#workspaces button.active {
+  color: @fg;
+}
+
+#workspaces button.empty {
+  color: @muted;
+}
+
+#workspaces button.urgent {
+  color: @pink;
+}
+
+#workspaces button:hover {
+  color: @fg;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+}
+
+/* Resize/other submap indicator */
+#submap {
+  background: @pink;
+  color: #060B1E;
+  font-weight: 700;
+}
+
+/* State colors */
+#temperature.critical,
+#network.disconnected,
+#pulseaudio.mic.source-muted,
+#battery.warning:not(.charging) {
+  color: @pink;
+}
+
+#battery.charging {
+  color: @blue;
+}
+
+@keyframes blink {
+  to {
+    background-color: @pink;
+    color: #060B1E;
+  }
+}
+
+#battery.critical:not(.charging) {
+  color: @pink;
+  animation-name: blink;
+  animation-duration: 1s;
+  animation-timing-function: steps(2);
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+/* Tray */
+#tray > .passive {
+  -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+  -gtk-icon-effect: highlight;
+}
+
+/* Tooltips (calendar, network info, ...) */
+tooltip {
+  background: @bg;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+tooltip label {
+  color: @fg;
+}

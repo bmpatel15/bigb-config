@@ -1,0 +1,60 @@
+# Yazi keymap — vim-style additions on top of the (already vim-like) defaults.
+# https://yazi-rs.github.io/docs/configuration/keymap
+#
+# Cheat sheet (defaults, unchanged):
+#   h / j / k / l     leave dir / down / up / enter dir
+#   g g  /  G         jump to top / bottom
+#   ctrl-u / ctrl-d   half page up / down
+#   v                 visual (selection) mode, Esc to leave
+#   Space             toggle select on current file
+#   y                 copy (yank)          x   cut
+#   p                 paste                P   paste (overwrite)
+#   a                 create (end name with / for a directory)
+#   r                 rename
+#   /                 search filter        Esc  clear
+#   .                 toggle hidden files
+#   q                 quit
+#
+# Vim-parity additions below:
+#   y y   copy (like vim yy)
+#   d d   cut  (like vim dd)
+#   d t   move to trash
+#   d D   delete permanently (confirms first)
+#   A     create directory
+#   c w   rename, cursor before extension (like vim cw)
+#   u     cancel a pending copy/cut (un-yank)
+
+[[mgr.prepend_keymap]]
+on = ["y", "y"]
+run = "yank"
+desc = "Copy selected files (vim yy)"
+
+[[mgr.prepend_keymap]]
+on = ["d", "d"]
+run = "yank --cut"
+desc = "Cut selected files (vim dd)"
+
+[[mgr.prepend_keymap]]
+on = ["d", "t"]
+run = "remove"
+desc = "Move selected files to trash"
+
+[[mgr.prepend_keymap]]
+on = ["d", "D"]
+run = "remove --permanently"
+desc = "Delete selected files permanently"
+
+[[mgr.prepend_keymap]]
+on = "A"
+run = "create --dir"
+desc = "Create a directory"
+
+[[mgr.prepend_keymap]]
+on = ["c", "w"]
+run = "rename --cursor=before_ext"
+desc = "Rename, cursor before extension (vim cw)"
+
+[[mgr.prepend_keymap]]
+on = "u"
+run = "unyank"
+desc = "Cancel pending copy/cut"

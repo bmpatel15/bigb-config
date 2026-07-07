@@ -1,0 +1,22 @@
+# Ghostty — Omarchy Ethereal
+# Colors live in themes/ethereal; font/window/shader below.
+
+font-family = JetBrainsMono Nerd Font Mono
+font-size = 10
+
+theme = ethereal
+
+# Cursor
+cursor-style = block
+cursor-style-blink = true
+
+# Window (matches existing alacritty padding)
+window-padding-x = 14
+window-padding-y = 14
+
+# Subtle comet-tail cursor trail.
+# Ghostty has no native cursor trail; this is a GLSL post-process shader.
+# Path is relative to ~/.config/ghostty/. `always` keeps it animating when
+# unfocused so the tail doesn't freeze (small CPU cost — drop to `true` to save power).
+custom-shader = shaders/cursor_tail.glsl
+custom-shader-animation = always

@@ -1,0 +1,41 @@
+# Yazi theme — ethereal palette
+# Source of truth: ~/.local/share/nvim/lazy/ethereal.nvim/lua/ethereal/colors/init.lua
+# bg #060B1E  fg #ffcead  blue #7d82d9  pink #c89dc1  muted #6d7db6
+# yellow #E9BB4F  orange #F99957  red #ED5B5A  green #92a593  black #3C486D
+# Backgrounds are left unset so the terminal's #060B1E shows through.
+
+[mgr]
+cwd = { fg = "#ffcead", bold = true }
+hovered = { fg = "#060B1E", bg = "#7d82d9" }
+preview_hovered = { underline = true }
+find_keyword = { fg = "#E9BB4F", bold = true, underline = true }
+find_position = { fg = "#c89dc1", bold = true, italic = true }
+marker_copied = { fg = "#92a593", bg = "#92a593" }
+marker_cut = { fg = "#ED5B5A", bg = "#ED5B5A" }
+marker_marked = { fg = "#7d82d9", bg = "#7d82d9" }
+marker_selected = { fg = "#c89dc1", bg = "#c89dc1" }
+count_copied = { fg = "#060B1E", bg = "#92a593" }
+count_cut = { fg = "#060B1E", bg = "#ED5B5A" }
+count_selected = { fg = "#060B1E", bg = "#c89dc1" }
+border_style = { fg = "#3C486D" }
+
+[mode]
+normal_main = { fg = "#060B1E", bg = "#7d82d9", bold = true }
+normal_alt = { fg = "#7d82d9", bg = "#3C486D" }
+select_main = { fg = "#060B1E", bg = "#c89dc1", bold = true }
+select_alt = { fg = "#c89dc1", bg = "#3C486D" }
+unset_main = { fg = "#060B1E", bg = "#F99957", bold = true }
+unset_alt = { fg = "#F99957", bg = "#3C486D" }
+
+[filetype]
+rules = [
+  { mime = "image/*", fg = "#E9BB4F" },
+  { mime = "video/*", fg = "#F99957" },
+  { mime = "audio/*", fg = "#c89dc1" },
+  { mime = "application/{zip,gzip,x-tar,x-bzip2,x-7z-compressed,x-rar,x-xz,zstd}", fg = "#ED5B5A" },
+  { mime = "application/{pdf,epub+zip}", fg = "#92a593" },
+  { url = "*", is = "orphan", fg = "#ED5B5A", crossed = true },
+  { url = "*", is = "exec", fg = "#92a593" },
+  { url = "*/", fg = "#7d82d9", bold = true },
+  { url = "*", fg = "#ffcead" },
+]

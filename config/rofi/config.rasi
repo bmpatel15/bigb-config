@@ -1,0 +1,11 @@
+/* User rofi config. Applies to every rofi invocation; the @theme below
+ * is only the default and is fully replaced when a script passes -theme
+ * (e.g. wallpaper-picker.sh). */
+
+configuration {
+    show-icons: true;
+    display-combi: "  Apps";
+    combi-hide-mode-prefix: true;
+}
+
+@theme "launcher"
