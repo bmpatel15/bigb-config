@@ -1,0 +1,75 @@
+/* Omarchy Ethereal theme for the browser mode picker (browser-mode.sh).
+ * Standalone theme: loaded with `rofi -theme`, so it replaces rofi's
+ * default theme entirely. Matches the waybar floating-islands palette. */
+
+* {
+    font: "JetBrainsMono Nerd Font 12";
+
+    bg:         rgba(6,11,30,0.95);
+    bg-raised:  rgba(255,255,255,0.06);
+    fg:         #ffcead;
+    fg-dim:     #6d7db6;
+    accent:     #7d82d9;
+    accent-dim: rgba(125,130,217,0.18);
+    border-col: #ffcead;
+
+    background-color: transparent;
+    text-color: @fg;
+}
+
+window {
+    width: 360px;
+    background-color: @bg;
+    border: 3px;
+    border-color: @border-col;
+    border-radius: 12px;
+    padding: 12px;
+}
+
+mainbox {
+    spacing: 10px;
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    background-color: @bg-raised;
+    border-radius: 8px;
+    padding: 8px 12px;
+    spacing: 8px;
+    children: [ prompt, entry ];
+}
+
+prompt {
+    text-color: @accent;
+}
+
+entry {
+    text-color: @fg;
+    placeholder: "Mode…";
+    placeholder-color: @fg-dim;
+    cursor: text;
+}
+
+listview {
+    lines: 3;
+    spacing: 6px;
+    scrollbar: false;
+    fixed-height: true;
+}
+
+element {
+    padding: 10px 12px;
+    border-radius: 8px;
+    text-color: @fg-dim;
+    cursor: pointer;
+}
+
+element selected {
+    background-color: @accent-dim;
+    text-color: @accent;
+}
+
+element-text {
+    text-color: inherit;
+    cursor: inherit;
+}

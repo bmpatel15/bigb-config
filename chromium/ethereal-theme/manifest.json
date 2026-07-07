@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Ethereal",
+  "version": "1.0",
+  "description": "Ethereal dark theme matching the bigb-config Hyprland/waybar/rofi palette.",
+  "theme": {
+    "colors": {
+      "frame":                    [6, 11, 30],
+      "frame_inactive":           [6, 11, 30],
+      "frame_incognito":          [6, 11, 30],
+      "frame_incognito_inactive": [6, 11, 30],
+      "background_tab":           [6, 11, 30],
+      "background_tab_inactive":  [6, 11, 30],
+      "toolbar":                  [13, 20, 48],
+      "tab_text":                 [255, 206, 173],
+      "tab_background_text":          [109, 125, 182],
+      "tab_background_text_inactive": [109, 125, 182],
+      "bookmark_text":            [255, 206, 173],
+      "toolbar_text":             [255, 206, 173],
+      "toolbar_button_icon":      [255, 206, 173],
+      "omnibox_background":       [16, 23, 54],
+      "omnibox_text":             [255, 206, 173],
+      "ntp_background":           [6, 11, 30],
+      "ntp_text":                 [255, 206, 173],
+      "ntp_link":                 [125, 130, 217],
+      "ntp_header":               [125, 130, 217],
+      "button_background":        [16, 23, 54]
+    },
+    "properties": { "ntp_logo_alternate": 1 }
+  }
+}

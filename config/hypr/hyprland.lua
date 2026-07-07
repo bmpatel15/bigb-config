@@ -33,7 +33,8 @@ hl.monitor({
 -- Set programs that you use
 local terminal = "ghostty"
 local fileManager = "dolphin"
-local browser = "zen-browser"
+local browser = "$HOME/.config/rofi/browser-mode.sh" -- rofi mode picker -> chromium profile
+local webapp = "$HOME/.config/hypr/scripts/webapp.sh" -- chromium --app in a mode profile
 local menu = "rofi -show drun -show-icons"
 local notes = "obsidian"
 
@@ -268,6 +269,9 @@ local secondMod = "SUPER + SHIFT"
 hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(notes))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(webapp .. " https://claude.ai")) -- Claude, active mode's profile
+hl.bind(mainMod .. " + U", hl.dsp.exec_cmd(webapp .. " https://coursera.org Education")) -- Coursera webapp
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(webapp .. " https://web.telegram.org Entertainment")) -- Telegram webapp
 local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
 -- Power menu: all buttons on one row, squeezed into a centered band (margins are

@@ -21,7 +21,7 @@ DOTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .zprofile .p10k.zsh .gitconfig)
-LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle)
+LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf)
 COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
 
 log()  { printf '\n\033[1;34m==>\033[0m \033[1m%s\033[0m\n' "$*"; }
@@ -162,7 +162,10 @@ main() {
 
     Manual steps (intentionally not automated):
       * Restore ~/.ssh keys, or generate new ones and add the pubkey to GitHub.
-      * Sign in: Zen browser, Claude Code (run `claude`).
+      * Sign in: Chromium (per profile), Claude Code (run `claude`).
+      * Chromium: run  bash ~/bigb-config/setup/chromium-profiles.sh  (browser closed),
+        then per profile: chrome://extensions -> Developer mode -> Load unpacked ->
+        ~/bigb-config/chromium/ethereal-theme
       * Restore the Obsidian vault to ~/Documents/BigB-PKM (own sync/backup).
       * Set up snapper (see README) for btrfs snapshot rollback.
       * Log out/in so the zsh login shell + Hyprland session take effect.
