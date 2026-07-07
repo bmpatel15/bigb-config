@@ -44,9 +44,15 @@ window#waybar {
 #battery,
 #tray,
 #custom-power,
+#custom-updates,
+#power-profiles-daemon,
 #submap {
   padding: 0 10px;
   border-radius: 13px;
+}
+
+#custom-updates.has-updates {
+  color: @blue;
 }
 
 /* Hover feedback on clickable modules */

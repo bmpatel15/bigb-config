@@ -14,10 +14,11 @@
   "modules-left": ["clock", "mpris"],
   "modules-center": ["hyprland/workspaces", "hyprland/submap"],
   "modules-right": [
+    "custom/updates",
     "cpu",
     "memory",
     "temperature",
-    // "power-profiles-daemon",  // enable the daemon first: systemctl enable --now power-profiles-daemon
+    "power-profiles-daemon",
     "network",
     "bluetooth",
     "pulseaudio",
@@ -27,6 +28,25 @@
     "tray",
     "custom/power"
   ],
+
+  "custom/updates": {
+    "exec": "$HOME/.config/waybar/scripts/updates.sh",
+    "return-type": "json",
+    "interval": 3600,
+    "on-click": "ghostty -e sh -c 'yay -Syu; echo; read -n1 -p \"done — press any key\"'",
+    "signal": 8
+  },
+
+  "power-profiles-daemon": {
+    "format": "{icon}",
+    "tooltip-format": "Power profile: {profile}",
+    "format-icons": {
+      "default": "",
+      "performance": "󰓅",
+      "balanced": "󰾅",
+      "power-saver": "󰾆"
+    }
+  },
 
   // ── Left island ────────────────────────────────────────────────
   "clock": {
