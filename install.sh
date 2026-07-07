@@ -20,7 +20,7 @@ set -euo pipefail
 DOTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
-LINK_HOME=(.zshrc .p10k.zsh .gitconfig)
+LINK_HOME=(.zshrc .zprofile .p10k.zsh .gitconfig)
 LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi)
 COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
 
