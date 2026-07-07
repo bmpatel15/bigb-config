@@ -1,0 +1,7 @@
+[Unit]
+Description=Weekly system maintenance report (updates + orphans)
+Documentation=man:pacman(8) man:checkupdates(1)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/systemd/user/system-maintenance.sh

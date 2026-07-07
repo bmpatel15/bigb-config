@@ -1,0 +1,9 @@
+[Unit]
+Description=Weekly system maintenance report (updates + orphans)
+
+[Timer]
+OnCalendar=Sun 10:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -19,7 +19,7 @@ DOTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .p10k.zsh .gitconfig)
-LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura)
+LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura systemd)
 COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop yazi mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
 
 log()  { printf '\n\033[1;34m==>\033[0m \033[1m%s\033[0m\n' "$*"; }
@@ -114,12 +114,18 @@ install_claude() {
     curl -fsSL https://claude.ai/install.sh | bash
 }
 
+enable_timers() {
+    log "User systemd timers"
+    systemctl --user daemon-reload
+    systemctl --user enable --now system-maintenance.timer && info "enabled: system-maintenance.timer"
+}
+
 main() {
     case "${1:-all}" in
         links)   link_configs ;;
         restore) restore_copies ;;
         sync)    sync_copies ;;
-        all)     install_packages; link_configs; restore_copies; setup_omz; set_shell; install_font; install_claude
+        all)     install_packages; link_configs; restore_copies; setup_omz; set_shell; install_font; install_claude; enable_timers
                  log "Done"
                  cat <<'EOF'
 
