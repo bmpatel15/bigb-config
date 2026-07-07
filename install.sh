@@ -2,8 +2,9 @@
 # bigb-config — Arch Linux + Hyprland setup bootstrap.
 #
 # Idempotent; safe to re-run. Subcommands:
-#   ./install.sh          full setup: packages -> AUR -> links -> shell -> font -> claude
+#   ./install.sh          full setup: packages -> AUR -> links -> tmux -> shell -> font -> claude
 #   ./install.sh links    only (re)create the hand-edited config symlinks
+#   ./install.sh tmux     clone TPM + install tmux plugins (needs the tmux symlink)
 #   ./install.sh restore  copy app-managed configs from repo -> ~ (fresh machine)
 #   ./install.sh sync     pull live app-managed configs from ~ -> repo (before commit)
 #   ./install.sh sync-packages  regenerate packages/{pacman,aur}.txt from installed packages
@@ -20,8 +21,8 @@ DOTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .p10k.zsh .gitconfig)
-LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd)
-COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop yazi mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
+LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi)
+COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
 
 log()  { printf '\n\033[1;34m==>\033[0m \033[1m%s\033[0m\n' "$*"; }
 info() { printf '    %s\n' "$*"; }
@@ -42,6 +43,26 @@ link_configs() {
     for f in "${LINK_HOME[@]}";   do [[ -e "$DOTS/home/$f"   ]] && link "$DOTS/home/$f"   "$HOME/$f"; done
     mkdir -p "$HOME/.config"
     for d in "${LINK_CONFIG[@]}"; do [[ -e "$DOTS/config/$d" ]] && link "$DOTS/config/$d" "$HOME/.config/$d"; done
+}
+
+setup_tmux() { # clone TPM into the (symlinked) tmux config dir, then install plugins
+    command -v tmux >/dev/null || { info "skip: tmux not installed"; return 0; }
+    log "tmux plugin manager (TPM) + plugins"
+    local tpm="$HOME/.config/tmux/plugins/tpm"   # -> repo config/tmux/plugins (gitignored)
+    if [[ -d "$tpm/.git" ]]; then
+        info "ok: tpm"
+    elif git clone --depth=1 https://github.com/tmux-plugins/tpm "$tpm"; then
+        info "cloned: tpm"
+    else
+        info "tpm clone failed (network?) — run: prefix + I  inside tmux later"; return 0
+    fi
+    # Headless install. TMUX= lets this run even if invoked from inside tmux.
+    if [[ -x "$tpm/bin/install_plugins" ]]; then
+        TMUX= tmux new-session -d -s _tpm 2>/dev/null || true
+        if TMUX= "$tpm/bin/install_plugins" >/dev/null 2>&1; then info "plugins installed";
+        else info "some plugins pending — run: prefix + I  inside tmux"; fi
+        TMUX= tmux kill-session -t _tpm 2>/dev/null || true
+    fi
 }
 
 restore_copies() {
@@ -131,10 +152,11 @@ enable_timers() {
 main() {
     case "${1:-all}" in
         links)   link_configs ;;
+        tmux)    setup_tmux ;;
         restore) restore_copies ;;
         sync)    sync_copies ;;
         sync-packages) sync_packages ;;
-        all)     install_packages; link_configs; restore_copies; setup_omz; set_shell; install_font; install_claude; enable_timers
+        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_omz; set_shell; install_font; install_claude; enable_timers
                  log "Done"
                  cat <<'EOF'
 
@@ -146,7 +168,7 @@ main() {
       * Log out/in so the zsh login shell + Hyprland session take effect.
 EOF
                  ;;
-        *) echo "usage: $0 [all|links|restore|sync|sync-packages]" >&2; exit 1 ;;
+        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages]" >&2; exit 1 ;;
     esac
 }
 main "$@"

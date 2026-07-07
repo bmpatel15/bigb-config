@@ -7,5 +7,8 @@
 config/nvim/.netrwhist
 config/nvim/lazy-lock.json.bak
 
+# tmux plugins installed by TPM (they land under the symlinked config dir)
+config/tmux/plugins/
+
 # backups created by install.sh
 .bigb-config-backup-*/

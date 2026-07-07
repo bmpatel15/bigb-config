@@ -146,6 +146,15 @@ fi
 command -v bat     >/dev/null && alias cat='bat --paging=never' && alias catp='bat'
 command -v lazygit >/dev/null && alias lg='lazygit'
 command -v zoxide  >/dev/null && alias cd='z'
+# tmux (attach-or-create; see BigB-PKM/08 - Attachments/Tmux Workflow.md)
+if command -v tmux >/dev/null; then
+  alias t='tmux'
+  alias tl='tmux ls'
+  alias tn='tmux new -s'
+  alias ta='tmux attach -t'
+  # tm [name]: attach to session <name> (default: main), creating it if absent.
+  tm() { local s="${1:-main}"; tmux new-session -A -s "$s"; }
+fi
 # git shortcuts
 alias gs='git status -sb'
 alias ga='git add'

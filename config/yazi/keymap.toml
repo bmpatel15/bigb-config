@@ -23,6 +23,7 @@
 #   A     create directory
 #   c w   rename, cursor before extension (like vim cw)
 #   u     cancel a pending copy/cut (un-yank)
+#   H / L switch to the previous / next tab (like vim buffer hop)
 
 [[mgr.prepend_keymap]]
 on = ["y", "y"]
@@ -58,3 +59,13 @@ desc = "Rename, cursor before extension (vim cw)"
 on = "u"
 run = "unyank"
 desc = "Cancel pending copy/cut"
+
+[[mgr.prepend_keymap]]
+on = "H"
+run = "tab_switch -1 --relative"
+desc = "Switch to previous tab (vim H)"
+
+[[mgr.prepend_keymap]]
+on = "L"
+run = "tab_switch 1 --relative"
+desc = "Switch to next tab (vim L)"

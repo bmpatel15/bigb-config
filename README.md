@@ -8,7 +8,7 @@ Migrated from an older Fedora Sway Atomic setup. Palette is **Omarchy Ethereal**
 
 | Path | What |
 |------|------|
-| `install.sh` | Idempotent bootstrap (packages, symlinks, oh-my-zsh, font, Claude Code) |
+| `install.sh` | Idempotent bootstrap (packages, symlinks, tmux plugins, oh-my-zsh, font, Claude Code) |
 | `config/` | `~/.config/*` configs |
 | `home/` | Home dotfiles (`.zshrc`, `.p10k.zsh`, `.gitconfig`) |
 | `packages/pacman.txt` | Explicit packages (`pacman -Qqe`) — repo + AUR |
@@ -16,9 +16,10 @@ Migrated from an older Fedora Sway Atomic setup. Palette is **Omarchy Ethereal**
 
 ## Two tracking strategies
 
-- **LINKED** (`hypr`, `ghostty`, `waybar`, `rofi`, `nvim`, `.zshrc`, `.p10k.zsh`, `.gitconfig`) —
-  `~/.config/<x>` is a **symlink into this repo**, so hand-edits auto-track. Edit in place, `git commit`.
-- **COPIED** (`gtk-3.0`, `gtk-4.0`, `nwg-look`, `xsettingsd`, `btop`, `yazi`, `mimeapps.list`,
+- **LINKED** (`hypr`, `ghostty`, `waybar`, `rofi`, `nvim`, `tmux`, `yazi`, `.zshrc`, `.p10k.zsh`,
+  `.gitconfig`) — `~/.config/<x>` is a **symlink into this repo**, so hand-edits auto-track.
+  Edit in place, `git commit`.
+- **COPIED** (`gtk-3.0`, `gtk-4.0`, `nwg-look`, `xsettingsd`, `btop`, `mimeapps.list`,
   `dolphinrc`, `kdeglobals`, `pavucontrol.ini`) — apps rewrite these via temp-file+rename,
   which detaches symlinks, so they're tracked as **copies**. After changing them in the app,
   run `./install.sh sync` to pull the live versions back into the repo before committing.
@@ -28,9 +29,15 @@ Migrated from an older Fedora Sway Atomic setup. Palette is **Omarchy Ethereal**
 ```sh
 ./install.sh          # full setup on a fresh machine
 ./install.sh links    # (re)create the LINKED symlinks only
+./install.sh tmux     # clone TPM + install tmux plugins (after links)
 ./install.sh restore  # copy COPIED configs from repo -> ~ (fresh machine)
 ./install.sh sync     # pull live COPIED configs from ~ -> repo (before a commit)
+./install.sh sync-packages  # regenerate packages/{pacman,aur}.txt from installed pkgs
 ```
+
+> **tmux plugins** are managed by [TPM](https://github.com/tmux-plugins/tpm), cloned into
+> `~/.config/tmux/plugins/` (gitignored — not committed). `./install.sh` (or `./install.sh tmux`)
+> clones TPM and installs them headlessly; inside tmux, `prefix + I` (`Ctrl-a I`) refreshes.
 
 ## btrfs snapshots (not in install.sh — do once, needs root)
 

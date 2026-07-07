@@ -10,6 +10,7 @@ blueman
 bluez
 bluez-utils
 brightnessctl
+btop
 btrfs-progs
 cliphist
 cups
@@ -29,6 +30,7 @@ github-cli
 go
 grim
 gst-plugin-pipewire
+htop
 hypridle
 hyprland
 hyprlock
@@ -90,6 +92,7 @@ swaync
 system-config-printer
 tailscale
 thermald
+tmux
 ttf-jetbrains-mono-nerd
 unzip
 uv
@@ -106,6 +109,7 @@ xdg-desktop-portal-hyprland
 xdg-user-dirs
 yay-bin
 yay-bin-debug
+yazi
 ydotool
 zathura
 zathura-pdf-mupdf
