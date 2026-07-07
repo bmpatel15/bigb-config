@@ -1,4 +1,5 @@
 bibata-cursor-theme
+gazelle-tui
 wlogout
 yay-bin
 yay-bin-debug

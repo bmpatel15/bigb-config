@@ -1,0 +1,39 @@
+# Gazelle (network TUI) — Omarchy Ethereal theme
+# Alacritty-format color file. Gazelle maps a SUBSET of these into its Textual theme:
+#   colors.primary.background -> background / surface / panel
+#   colors.primary.foreground -> foreground (body text)
+#   colors.normal.yellow      -> accent + secondary  (borders, titles, cursor highlight)
+#   colors.normal.red         -> primary             (primary buttons e.g. Connect, input focus)
+# The yellow/red slots are therefore intentionally repurposed to Ethereal accent/primary
+# hues below — they are read ONLY by gazelle, not used as a real terminal palette.
+# Palette: bg #060B1E · peach #ffcead · lavender #7d82d9 · pink #c89dc1 · cyan #a3bfd1
+#          green #92a593 · yellow #E9BB4F · orange #F99957 · red #ED5B5A · navy #3C486D
+
+[colors.primary]
+background = "#060B1E"
+foreground = "#ffcead"
+
+[colors.normal]
+black   = "#3C486D"
+red     = "#c89dc1"  # -> Textual `primary`  (Connect/Next buttons, input focus)
+green   = "#92a593"
+yellow  = "#7d82d9"  # -> Textual `accent`   (borders, titles, cursor/hover)
+blue    = "#7d82d9"
+magenta = "#c89dc1"
+cyan    = "#a3bfd1"
+white   = "#ffcead"
+
+[colors.bright]
+black   = "#6d7db6"
+red     = "#faaaa9"
+green   = "#c4cfc4"
+yellow  = "#f7dc9c"
+blue    = "#c2c4f0"
+magenta = "#ead7e7"
+cyan    = "#dfeaf0"
+white   = "#ffcead"
+
+# Rounded borders to echo Hyprland rounding + waybar islands
+[styles]
+dialog_border  = "round"
+section_border = "round"

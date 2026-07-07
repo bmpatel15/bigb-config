@@ -275,6 +275,9 @@ local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("pidof wlogout || wlogout -b 6 -T 360 -B 360 -L 25 -R 25"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(secondMod .. " + F", hl.dsp.window.float({ action = "toggle" })) -- float toggle (moved off SUPER+V)
+-- Floating Ethereal-themed TUIs (see window rules at bottom). Binary `gazelle` confirmed post-install.
+hl.bind(secondMod .. " + B", hl.dsp.exec_cmd("ghostty --class=com.ethereal.BtTui -e bluetui")) -- bluetooth TUI
+hl.bind(secondMod .. " + I", hl.dsp.exec_cmd("ghostty --class=com.ethereal.NetTui -e gazelle")) -- network TUI
 
 -- Universal copy/paste (Omarchy-style): SUPER+C/V -> Ctrl+Insert / Shift+Insert via
 -- Hyprland's native send_shortcut dispatcher. Those chords copy/paste in terminals AND
@@ -408,4 +411,23 @@ hl.window_rule({
 
 	move = "20 monitor_h-120",
 	float = true,
+})
+
+-- Floating TUIs launched via Ghostty --class (net/bluetooth). Centered popups.
+hl.window_rule({
+	name = "float-net-tui",
+	match = { class = "com.ethereal.NetTui" },
+
+	float = true,
+	size = "900 600",
+	center = true,
+})
+
+hl.window_rule({
+	name = "float-bt-tui",
+	match = { class = "com.ethereal.BtTui" },
+
+	float = true,
+	size = "900 600",
+	center = true,
 })
