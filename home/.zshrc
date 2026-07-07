@@ -77,7 +77,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+plugins=(git sudo extract fzf-tab zsh-autosuggestions zsh-syntax-highlighting)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -112,8 +112,49 @@ source $ZSH/oh-my-zsh.sh
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-export PATH="$HOME/.local/bin:$PATH"
 
-# Aliases
+# ── PATH: user bins + language toolchains ──────────────────────────────
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+command -v go >/dev/null && export PATH="$(go env GOPATH)/bin:$PATH"
+
+# ── Editor ─────────────────────────────────────────────────────────────
+export EDITOR='nvim'
+export VISUAL='nvim'
+command -v bat >/dev/null && export MANPAGER="sh -c 'col -bx | bat -l man -p'" && export MANROFFOPT='-c'
+
+# ── History ────────────────────────────────────────────────────────────
+HISTSIZE=50000
+SAVEHIST=50000
+setopt HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE SHARE_HISTORY INC_APPEND_HISTORY EXTENDED_HISTORY
+
+# ── Tool integrations (guarded so a missing tool never breaks the shell) ─
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+command -v fzf    >/dev/null && source <(fzf --zsh)
+command -v fnm    >/dev/null && eval "$(fnm env --use-on-cd)"
+
+# ── Aliases ────────────────────────────────────────────────────────────
 alias config='cd ~/.config'
 alias ov='cd ~/Documents/BigB-PKM/'
+alias reload='exec zsh'
+# modern replacements (only if installed)
+if command -v eza >/dev/null; then
+  alias ls='eza --group-directories-first --icons=auto'
+  alias ll='eza -l --group-directories-first --icons=auto --git'
+  alias la='eza -la --group-directories-first --icons=auto --git'
+  alias lt='eza --tree --level=2 --icons=auto'
+fi
+command -v bat     >/dev/null && alias cat='bat --paging=never' && alias catp='bat'
+command -v lazygit >/dev/null && alias lg='lazygit'
+command -v zoxide  >/dev/null && alias cd='z'
+# git shortcuts
+alias gs='git status -sb'
+alias ga='git add'
+alias gc='git commit'
+alias gd='git diff'
+alias gl='git log --oneline --graph --decorate -20'
+alias gp='git push'
+alias gco='git checkout'
+# dirs
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
