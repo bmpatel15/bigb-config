@@ -1,6 +1,5 @@
 bibata-cursor-theme
 wlogout
-wlogout-debug
 yay-bin
 yay-bin-debug
 zen-browser-bin
