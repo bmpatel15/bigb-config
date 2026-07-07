@@ -84,14 +84,14 @@
   "cpu": {
     "format": " {usage}%",
     "interval": 3,
-    "on-click": "alacritty -e btop"
+    "on-click": "ghostty -e btop"
   },
 
   "memory": {
     "format": "󰍛 {percentage}%",
     "interval": 5,
     "tooltip-format": "{used:0.1f}G / {total:0.1f}G used",
-    "on-click": "alacritty -e btop"
+    "on-click": "ghostty -e btop"
   },
 
   "temperature": {

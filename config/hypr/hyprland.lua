@@ -47,8 +47,17 @@ local notes = "obsidian"
 -- Or execute your favorite apps at launch like this:
 --
 hl.on("hyprland.start", function()
+	-- Propagate the Wayland session env into systemd/D-Bus FIRST, so polkit-agent
+	-- and xdg-desktop-portal-hyprland don't start before WAYLAND_DISPLAY /
+	-- XDG_CURRENT_DESKTOP exist and crash-loop into start-limit-hit.
+	hl.exec_cmd(
+		"dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE"
+	)
 	hl.exec_cmd("waybar")
 	hl.exec_cmd("systemctl --user start hyprpolkitagent")
+	hl.exec_cmd("swaync") -- notification daemon
+	hl.exec_cmd("wl-paste --type text --watch cliphist store") -- clipboard history (text)
+	hl.exec_cmd("wl-paste --type image --watch cliphist store") -- clipboard history (images)
 	hl.exec_cmd("hyprctl setcursor Bibata-Modern-Ice 30")
 	hl.exec_cmd("$HOME/.config/rofi/wallpaper-picker.sh --restore")
 	hl.exec_cmd("hypridle")
@@ -261,10 +270,7 @@ hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(notes))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
-hl.bind(
-	mainMod .. " + M",
-	hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'")
-)
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("pidof wlogout || wlogout")) -- power menu
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(menu))
