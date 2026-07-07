@@ -19,7 +19,7 @@ DOTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .p10k.zsh .gitconfig)
-LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync)
+LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura)
 COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop yazi mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
 
 log()  { printf '\n\033[1;34m==>\033[0m \033[1m%s\033[0m\n' "$*"; }

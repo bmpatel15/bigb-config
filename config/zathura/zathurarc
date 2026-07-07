@@ -1,0 +1,27 @@
+# zathura — Omarchy Ethereal theme, tuned for long reading sessions
+set font "JetBrainsMono Nerd Font 11"
+
+# palette
+set default-bg          "#060B1E"
+set default-fg          "#ffcead"
+set statusbar-bg        "#0d1430"
+set statusbar-fg        "#ffcead"
+set inputbar-bg         "#060B1E"
+set inputbar-fg         "#ffcead"
+set notification-bg     "#0d1430"
+set notification-fg     "#ffcead"
+set highlight-color        "rgba(125,130,217,0.45)"
+set highlight-active-color "rgba(255,206,173,0.45)"
+
+# dark-mode recolor for PDFs (easy on the eyes at night; toggle live with Ctrl+R)
+set recolor true
+set recolor-keephue true
+set recolor-lightcolor "#060B1E"
+set recolor-darkcolor  "#ffcead"
+
+# behaviour
+set adjust-open "width"
+set selection-clipboard clipboard
+set scroll-step 80
+set guioptions "v"
+set statusbar-home-tilde true
