@@ -1,12 +1,10 @@
 #
 # ~/.zprofile — sourced by zsh for login shells only.
 #
-# Autostart Hyprland on the first console login (tty1) of jarvis.
-# Runs only when there's no display yet, we're on virtual terminal 1,
-# and this is jarvis — so terminal tabs, SSH sessions, and other machines
-# are unaffected. `exec` replaces the login shell with the compositor, so
-# quitting Hyprland logs you out instead of dropping to a bare prompt.
+# 2026-07-07: the tty1 Hyprland autostart block that used to live here was
+# retired when jarvis moved to the Ly display manager (ly@tty1.service).
+# Ly now owns tty1: it auto-logs into Hyprland once per boot and requires a
+# password after logout. See ~/.local/share/docs/ly-autologin-setup.md.
+# The old block is preserved in the migration backup
+# (~/.local/state/ly-migration-backup/) and in this repo's git history.
 #
-if [[ -z $WAYLAND_DISPLAY && -z $DISPLAY && $XDG_VTNR == 1 && $HOST == jarvis ]]; then
-  exec start-hyprland
-fi

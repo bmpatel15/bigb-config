@@ -98,8 +98,8 @@ hl.env("HYPRCURSOR_SIZE", "30")
 -- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
 hl.config({
 	general = {
-		gaps_in = 5,
-		gaps_out = 20,
+		gaps_in = 3,
+		gaps_out = 10,
 
 		border_size = 2,
 
@@ -151,6 +151,7 @@ hl.curve("easeInOutCubic", { type = "bezier", points = { { 0.65, 0.05 }, { 0.36,
 hl.curve("linear", { type = "bezier", points = { { 0, 0 }, { 1, 1 } } })
 hl.curve("almostLinear", { type = "bezier", points = { { 0.5, 0.5 }, { 0.75, 1 } } })
 hl.curve("quick", { type = "bezier", points = { { 0.15, 0 }, { 0.1, 1 } } })
+hl.curve("easeOutExpo", { type = "bezier", points = { { 0.16, 1 }, { 0.3, 1 } } })
 
 -- Default springs
 hl.curve("easy", { type = "spring", mass = 1, stiffness = 71.2633, dampening = 15.8273644 })
@@ -168,9 +169,10 @@ hl.animation({ leaf = "layersIn", enabled = true, speed = 4, bezier = "easeOutQu
 hl.animation({ leaf = "layersOut", enabled = true, speed = 1.5, bezier = "linear", style = "fade" })
 hl.animation({ leaf = "fadeLayersIn", enabled = true, speed = 1.79, bezier = "almostLinear" })
 hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.39, bezier = "almostLinear" })
-hl.animation({ leaf = "workspaces", enabled = true, speed = 1.94, bezier = "almostLinear", style = "slide" })
-hl.animation({ leaf = "workspacesIn", enabled = true, speed = 1.21, bezier = "almostLinear", style = "slide" })
-hl.animation({ leaf = "workspacesOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "slide" })
+-- slidefade needs the trailing % or the movement amount is ignored (defaults to 100%)
+hl.animation({ leaf = "workspaces", enabled = true, speed = 3.5, bezier = "easeOutExpo", style = "slidefade 20%" })
+hl.animation({ leaf = "workspacesIn", enabled = true, speed = 3.5, bezier = "easeOutExpo", style = "slidefade 20%" })
+hl.animation({ leaf = "workspacesOut", enabled = true, speed = 3.5, bezier = "easeOutExpo", style = "slidefade 20%" })
 hl.animation({ leaf = "zoomFactor", enabled = true, speed = 7, bezier = "quick" })
 
 -- Ref https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
@@ -272,6 +274,7 @@ hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + A", hl.dsp.exec_cmd(webapp .. " https://claude.ai")) -- Claude, active mode's profile
 hl.bind(mainMod .. " + U", hl.dsp.exec_cmd(webapp .. " https://coursera.org Education")) -- Coursera webapp
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(webapp .. " https://web.telegram.org Entertainment")) -- Telegram webapp
+hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(webapp .. " https://research.baps.org Education")) -- BAPS Research webapp
 local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
 -- Power menu: all buttons on one row, squeezed into a centered band (margins are
