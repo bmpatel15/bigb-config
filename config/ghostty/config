@@ -20,6 +20,8 @@ window-padding-y = 14
 keybind = ctrl+insert=copy_to_clipboard
 keybind = shift+insert=paste_from_clipboard
 
+confirm-close-surface = false
+
 # Subtle comet-tail cursor trail.
 # Ghostty has no native cursor trail; this is a GLSL post-process shader.
 # Path is relative to ~/.config/ghostty/. `always` keeps it animating when
