@@ -6,6 +6,7 @@
 #   ./install.sh links    only (re)create the hand-edited config symlinks
 #   ./install.sh restore  copy app-managed configs from repo -> ~ (fresh machine)
 #   ./install.sh sync     pull live app-managed configs from ~ -> repo (before commit)
+#   ./install.sh sync-packages  regenerate packages/{pacman,aur}.txt from installed packages
 #
 # Two tracking strategies (see arrays below):
 #   LINKED  — configs WE hand-edit; ~/.config/<x> is a symlink into this repo,
@@ -60,6 +61,13 @@ sync_copies() {
             cp -a "$HOME/.config/$d" "$DOTS/config/"; info "pulled: $d"
         fi
     done
+}
+
+sync_packages() {
+    log "Refreshing package manifests"
+    pacman -Qqe  > "$DOTS/packages/pacman.txt"; info "wrote packages/pacman.txt ($(wc -l < "$DOTS/packages/pacman.txt") explicit repo + AUR)"
+    pacman -Qqem > "$DOTS/packages/aur.txt";    info "wrote packages/aur.txt ($(wc -l < "$DOTS/packages/aur.txt") foreign/AUR)"
+    info "review with: git -C \"$DOTS\" diff packages/  then commit"
 }
 
 bootstrap_yay() {
@@ -125,6 +133,7 @@ main() {
         links)   link_configs ;;
         restore) restore_copies ;;
         sync)    sync_copies ;;
+        sync-packages) sync_packages ;;
         all)     install_packages; link_configs; restore_copies; setup_omz; set_shell; install_font; install_claude; enable_timers
                  log "Done"
                  cat <<'EOF'
@@ -137,7 +146,7 @@ main() {
       * Log out/in so the zsh login shell + Hyprland session take effect.
 EOF
                  ;;
-        *) echo "usage: $0 [all|links|restore|sync]" >&2; exit 1 ;;
+        *) echo "usage: $0 [all|links|restore|sync|sync-packages]" >&2; exit 1 ;;
     esac
 }
 main "$@"
