@@ -1,0 +1,55 @@
+/* wlogout — Omarchy Ethereal
+   bg #060B1E   surface #0d1430   peach #ffcead (fg/accent)   lavender #7d82d9   red #ED5B5A
+   Launched with `wlogout -b 6` (all buttons on one row). */
+
+* {
+	font-family: "JetBrainsMono Nerd Font", monospace;
+	font-size: 16px;
+	background-image: none;
+	box-shadow: none;
+	transition: 200ms cubic-bezier(0.1, 0.7, 0.1, 1);
+}
+
+/* Dim the desktop behind the menu with the Ethereal background. */
+window {
+	background: rgba(6, 11, 30, 0.85);
+}
+
+button {
+	color: #ffcead;
+	background-color: rgba(13, 20, 48, 0.9);
+	border: 1px solid rgba(125, 130, 217, 0.45);
+	border-radius: 16px;
+	margin: 14px;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+	background-repeat: no-repeat;
+	background-position: center 33%;
+	background-size: 28%;
+}
+
+/* Hover / keyboard focus: subtle peach wash + peach border glow (icon stays visible). */
+button:focus,
+button:active,
+button:hover {
+	color: #ffcead;
+	background-color: rgba(255, 206, 173, 0.14);
+	border-color: #ffcead;
+	box-shadow: 0 0 18px rgba(255, 206, 173, 0.28);
+	outline: none;
+}
+
+/* Destructive actions glow red instead of peach. */
+#reboot:focus,   #reboot:active,   #reboot:hover,
+#shutdown:focus, #shutdown:active, #shutdown:hover {
+	background-color: rgba(237, 91, 90, 0.16);
+	border-color: #ED5B5A;
+	box-shadow: 0 0 18px rgba(237, 91, 90, 0.32);
+}
+
+/* Peach-tinted icons (tracked in ./icons); fall back to the system white icons. */
+#lock      { background-image: image(url("/home/bmpatel15/.config/wlogout/icons/lock.png"),      url("/usr/share/wlogout/icons/lock.png")); }
+#suspend   { background-image: image(url("/home/bmpatel15/.config/wlogout/icons/suspend.png"),   url("/usr/share/wlogout/icons/suspend.png")); }
+#hibernate { background-image: image(url("/home/bmpatel15/.config/wlogout/icons/hibernate.png"), url("/usr/share/wlogout/icons/hibernate.png")); }
+#logout    { background-image: image(url("/home/bmpatel15/.config/wlogout/icons/logout.png"),    url("/usr/share/wlogout/icons/logout.png")); }
+#reboot    { background-image: image(url("/home/bmpatel15/.config/wlogout/icons/reboot.png"),     url("/usr/share/wlogout/icons/reboot.png")); }
+#shutdown  { background-image: image(url("/home/bmpatel15/.config/wlogout/icons/shutdown.png"),  url("/usr/share/wlogout/icons/shutdown.png")); }

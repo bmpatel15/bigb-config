@@ -270,7 +270,9 @@ hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(notes))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("pidof wlogout || wlogout")) -- power menu
+-- Power menu: all buttons on one row, squeezed into a centered band (margins are
+-- logical px, tuned for the 1536x960 eDP-1 display).
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("pidof wlogout || wlogout -b 6 -T 360 -B 360 -L 25 -R 25"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(secondMod .. " + F", hl.dsp.window.float({ action = "toggle" })) -- float toggle (moved off SUPER+V)
 
