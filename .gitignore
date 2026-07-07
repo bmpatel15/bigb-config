@@ -10,5 +10,8 @@ config/nvim/lazy-lock.json.bak
 # tmux plugins installed by TPM (they land under the symlinked config dir)
 config/tmux/plugins/
 
+# gazelle runtime (theme.toml is tracked; the app-saved theme selection is not)
+config/gazelle/config.json
+
 # backups created by install.sh
 .bigb-config-backup-*/
