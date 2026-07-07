@@ -56,7 +56,6 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("waybar")
 	hl.exec_cmd("systemctl --user start hyprpolkitagent")
 	hl.exec_cmd("swaync") -- notification daemon
-	hl.exec_cmd("pgrep -x ydotoold >/dev/null || ydotoold") -- input daemon for SUPER+C/V copy-paste
 	hl.exec_cmd("wl-paste --type text --watch cliphist store") -- clipboard history (text)
 	hl.exec_cmd("wl-paste --type image --watch cliphist store") -- clipboard history (images)
 	hl.exec_cmd("hyprctl setcursor Bibata-Modern-Ice 30")
@@ -275,9 +274,12 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("pidof wlogout || wlogout")) -- power
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(secondMod .. " + F", hl.dsp.window.float({ action = "toggle" })) -- float toggle (moved off SUPER+V)
 
--- Universal copy/paste (window-aware via ydotool: terminal=Ctrl+Shift+C/V, GUI=Ctrl+C/V)
-hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/clip.sh copy"))
-hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/clip.sh paste"))
+-- Universal copy/paste (Omarchy-style): SUPER+C/V -> Ctrl+Insert / Shift+Insert via
+-- Hyprland's native send_shortcut dispatcher. Those chords copy/paste in terminals AND
+-- GUI apps, so no window-class detection or ydotool is needed. The activewindow target
+-- keeps the modifier state clean. In Neovim, use y/p (they sync via clipboard=unnamedplus).
+hl.bind(mainMod .. " + C", hl.dsp.send_shortcut({ mods = "CTRL", key = "Insert", window = "activewindow" }))
+hl.bind(mainMod .. " + V", hl.dsp.send_shortcut({ mods = "SHIFT", key = "Insert", window = "activewindow" }))
 -- Clipboard history (cliphist via rofi)
 hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("cliphist list | rofi -dmenu | cliphist decode | wl-copy"))
 -- Notification panel toggle + night light toggle

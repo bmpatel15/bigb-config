@@ -14,6 +14,12 @@ cursor-style-blink = true
 window-padding-x = 14
 window-padding-y = 14
 
+# Copy/paste — paired with Hyprland SUPER+C/SUPER+V (-> Ctrl+Insert / Shift+Insert).
+# Ghostty's default shift+insert pastes the PRIMARY selection; override it to the
+# clipboard so SUPER+V pastes exactly what SUPER+C copied.
+keybind = ctrl+insert=copy_to_clipboard
+keybind = shift+insert=paste_from_clipboard
+
 # Subtle comet-tail cursor trail.
 # Ghostty has no native cursor trail; this is a GLSL post-process shader.
 # Path is relative to ~/.config/ghostty/. `always` keeps it animating when

@@ -4,3 +4,7 @@
 
 -- Prefer absolute line numbers for markdown/prose work.
 vim.opt.relativenumber = false
+
+-- Sync yank/paste/delete with the Wayland system clipboard (needs wl-clipboard),
+-- so y/p round-trip with other apps and the SUPER+C/V universal copy/paste binds.
+vim.opt.clipboard = "unnamedplus"
