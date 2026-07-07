@@ -56,6 +56,7 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd("waybar")
 	hl.exec_cmd("systemctl --user start hyprpolkitagent")
 	hl.exec_cmd("swaync") -- notification daemon
+	hl.exec_cmd("pgrep -x ydotoold >/dev/null || ydotoold") -- input daemon for SUPER+C/V copy-paste
 	hl.exec_cmd("wl-paste --type text --watch cliphist store") -- clipboard history (text)
 	hl.exec_cmd("wl-paste --type image --watch cliphist store") -- clipboard history (images)
 	hl.exec_cmd("hyprctl setcursor Bibata-Modern-Ice 30")
@@ -272,7 +273,21 @@ local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 -- closeWindowBind:set_enabled(false)
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("pidof wlogout || wlogout")) -- power menu
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
-hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
+hl.bind(secondMod .. " + F", hl.dsp.window.float({ action = "toggle" })) -- float toggle (moved off SUPER+V)
+
+-- Universal copy/paste (window-aware via ydotool: terminal=Ctrl+Shift+C/V, GUI=Ctrl+C/V)
+hl.bind(mainMod .. " + C", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/clip.sh copy"))
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/clip.sh paste"))
+-- Clipboard history (cliphist via rofi)
+hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("cliphist list | rofi -dmenu | cliphist decode | wl-copy"))
+-- Notification panel toggle + night light toggle
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"))
+hl.bind(secondMod .. " + N", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/nightlight.sh"))
+-- Screenshots (grim + slurp -> swappy annotate/copy/save)
+hl.bind("Print", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/screenshot.sh region"))
+hl.bind("SHIFT + Print", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/screenshot.sh window"))
+hl.bind("CTRL + Print", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/screenshot.sh full"))
+
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("$HOME/.config/rofi/wallpaper-picker.sh"))

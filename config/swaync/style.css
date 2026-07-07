@@ -1,0 +1,80 @@
+/* swaync — Omarchy Ethereal theme */
+* {
+  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-size: 14px;
+}
+
+/* palette:
+   bg      #060B1E   fg  #ffcead
+   surface #0d1430   dim #7d82d9 (lavender)   accent #ffcead (peach) */
+
+.notification-row { outline: none; }
+
+.notification {
+  border-radius: 12px;
+  margin: 6px 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  padding: 0;
+}
+
+.notification-content {
+  background: rgba(6, 11, 30, 0.92);
+  border: 1px solid rgba(125, 130, 217, 0.45);
+  border-radius: 12px;
+  padding: 10px;
+  color: #ffcead;
+}
+
+.notification.critical .notification-content {
+  border-color: #ff6b81;
+}
+
+.summary { color: #ffcead; font-weight: bold; }
+.body { color: #d7d9f5; }
+.time { color: #7d82d9; }
+
+.close-button {
+  background: transparent;
+  color: #7d82d9;
+  border-radius: 8px;
+  margin: 4px;
+  padding: 2px 6px;
+}
+.close-button:hover { background: rgba(255, 206, 173, 0.15); color: #ffcead; }
+
+.notification-action, .notification-default-action {
+  border-radius: 10px;
+}
+.notification-action:hover { background: rgba(125, 130, 217, 0.2); }
+
+/* control center */
+.control-center {
+  background: rgba(6, 11, 30, 0.94);
+  border: 1px solid rgba(125, 130, 217, 0.4);
+  border-radius: 14px;
+  margin: 12px;
+  padding: 12px;
+}
+
+.control-center .notification-row .notification-background .notification .notification-content {
+  background: rgba(13, 20, 48, 0.9);
+}
+
+.widget-title { color: #ffcead; font-size: 16px; margin: 4px 8px 8px 8px; }
+.widget-title > button {
+  background: rgba(125, 130, 217, 0.18);
+  color: #ffcead;
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+.widget-title > button:hover { background: rgba(255, 206, 173, 0.22); }
+
+.widget-dnd { color: #d7d9f5; margin: 4px 8px; }
+.widget-dnd > switch {
+  background: rgba(13, 20, 48, 0.9);
+  border-radius: 12px;
+}
+.widget-dnd > switch:checked { background: #7d82d9; }
+
+.notification-group-header { color: #7d82d9; }
+.floating-notifications.background .notification-content { background: rgba(6, 11, 30, 0.92); }
