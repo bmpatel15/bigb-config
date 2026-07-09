@@ -21,7 +21,7 @@ BAK_DIR="$STATE/qc-process/backups"
 USAGE_DIR="$STATE/qc-process/usage"
 TIMEOUT_S="${QC_PROCESS_TIMEOUT:-300}"
 RAW_RE='^## [0-9]{2}:[0-9]{2}$'
-MARKER_RE='^@[a-z0-9][a-z0-9_-]*([[:space:]]+@[a-z0-9][a-z0-9_-]*)*[[:space:]]*$'
+MARKER_RE='^@[A-Za-z0-9][A-Za-z0-9_-]*([[:space:]]+@[A-Za-z0-9][A-Za-z0-9_-]*)*[[:space:]]*$'
 
 mkdir -p "$BAK_DIR" "$USAGE_DIR"
 log()    { printf '%s  %s\n' "$(date '+%F %H:%M:%S')" "$*" >>"$LOG"; }
@@ -64,7 +64,7 @@ extract_prose() { # body minus frontmatter, raw headings, marker-only lines, bla
 		NR==1 && $0=="---" { fm=1; next }
 		fm { if ($0=="---") fm=0; next }
 		/^## [0-9][0-9]:[0-9][0-9]$/ { next }
-		/^@[a-z0-9][a-z0-9_-]*([ \t]+@[a-z0-9][a-z0-9_-]*)*[ \t]*$/ { next }
+		/^@[A-Za-z0-9][A-Za-z0-9_-]*([ \t]+@[A-Za-z0-9][A-Za-z0-9_-]*)*[ \t]*$/ { next }
 		/^[ \t]*$/ { next }
 		{ print }
 	' "$1"
@@ -86,8 +86,9 @@ INPUT FORMAT
   "## HH:MM" (24-hour time), then the capture body. The body's FIRST line
   may be a marker line: a line consisting ONLY of one or more @markers
   separated by spaces (examples: "@coursera @sql", "@satsang-diksha",
-  "@idea @hermes"). Markers are free-form kebab-case. A line containing
-  any non-marker word is prose, not a marker line.
+  "@idea @hermes"). Markers are free-form kebab-case and matched
+  CASE-INSENSITIVELY: "@Vachanamrut" means the same as "@vachanamrut".
+  A line containing any non-marker word is prose, not a marker line.
 
 TRANSFORM every raw "## HH:MM" block:
 1. Determine its topic:
