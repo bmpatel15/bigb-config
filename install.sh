@@ -22,6 +22,7 @@ BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .zprofile .p10k.zsh .gitconfig)
 LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf)
+LINK_BIN=(obsidian-capture obsidian-capture-popup)
 COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
 
 log()  { printf '\n\033[1;34m==>\033[0m \033[1m%s\033[0m\n' "$*"; }
@@ -43,6 +44,8 @@ link_configs() {
     for f in "${LINK_HOME[@]}";   do [[ -e "$DOTS/home/$f"   ]] && link "$DOTS/home/$f"   "$HOME/$f"; done
     mkdir -p "$HOME/.config"
     for d in "${LINK_CONFIG[@]}"; do [[ -e "$DOTS/config/$d" ]] && link "$DOTS/config/$d" "$HOME/.config/$d"; done
+    mkdir -p "$HOME/.local/bin"
+    for b in "${LINK_BIN[@]}";    do [[ -e "$DOTS/bin/$b"    ]] && link "$DOTS/bin/$b"    "$HOME/.local/bin/$b"; done
 }
 
 setup_tmux() { # clone TPM into the (symlinked) tmux config dir, then install plugins

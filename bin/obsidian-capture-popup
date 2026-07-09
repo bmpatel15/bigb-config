@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Launch the Obsidian Quick Capture popup: a dedicated Ghostty window (own
+# Wayland app-id) running obsidian-capture. Hyprland floats/centers it via the
+# float-quick-capture window rule keyed on this class.
+set -euo pipefail
+
+CLASS="com.ethereal.QuickCapture"
+
+# Double-press = refocus the existing capture window (no second nvim on the same file).
+# Lua-config Hyprland: hyprctl dispatch args are evaluated as Lua, not classic syntax.
+if hyprctl clients 2>/dev/null | grep -qE "^[[:space:]]*class: ${CLASS//./\\.}$"; then
+	hyprctl dispatch "hl.dsp.focus({ window = \"class:$CLASS\" })" >/dev/null
+	exit 0
+fi
+
+exec ghostty \
+	--class="$CLASS" \
+	--title="Obsidian Quick Capture" \
+	--gtk-single-instance=false \
+	--background-opacity=0.95 \
+	-e "$HOME/.local/bin/obsidian-capture"

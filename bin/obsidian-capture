@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# Obsidian Quick Capture: append a timestamped block to today's daily QC note
+# (YYYY-MM-DD-QC.md) and open Neovim on it in Insert mode. If the capture is
+# abandoned (nothing but whitespace typed), the block is removed again; a
+# first-of-day file left with only untouched frontmatter is deleted entirely.
+#
+# Cleanup runs three ways, because Ghostty SIGKILLs the popup's process group
+# almost immediately after the window closes:
+#   1. EXIT trap in this process (normal :wq / :q path)
+#   2. a setsid-detached janitor (re-invocation with --janitor) that survives
+#      the kill and re-runs the idempotent cleanup once this process is gone
+#   3. a tail-heal pass on the next invocation, as a last-resort backstop
+set -euo pipefail
+
+# Overridable for testing so validation never touches the real vault.
+QC_DIR="${OBSIDIAN_QC_DIR:-$HOME/Documents/BigB-PKM/02 - Fleeting Notes}"
+ED="${OBSIDIAN_QC_EDITOR:-nvim}"
+LOCK="${XDG_RUNTIME_DIR:-/tmp}/obsidian-quick-capture.lock"
+
+# Remove this session's capture block iff it is still empty, then delete the
+# whole file if this session created it and only the untouched frontmatter
+# remains. Idempotent: safe to run again by the janitor after a partial run.
+# Uses globals: FILE, HM, CREATED_THIS_RUN, FM.
+cleanup() {
+	[[ -e "$FILE" ]] || return 0
+	local last
+	last="$(grep -nxF "## $HM" "$FILE" | tail -n 1 | cut -d: -f1 || true)"
+	if [[ -n "$last" ]]; then
+		# Any non-whitespace after the heading (even a lone @tag) is meaningful.
+		if ! awk -v s="$last" 'NR > s && $0 !~ /^[[:space:]]*$/ { exit 1 }' "$FILE"; then
+			return 0
+		fi
+		# Abandoned: cut from the separator blank line above the heading.
+		local cut="$last"
+		if ((last > 1)) && sed -n "$((last - 1))p" "$FILE" | grep -q '^[[:space:]]*$'; then
+			cut=$((last - 1))
+		fi
+		local bytes
+		bytes="$(head -n "$((cut - 1))" "$FILE" | wc -c)"
+		truncate -s "$bytes" "$FILE" # in-place: preserves inode (Obsidian-friendly)
+	fi
+	# First-of-day + abandoned + frontmatter untouched -> no orphan file. Checked
+	# outside the branch above so a janitor rerun after an interrupted cleanup
+	# (block already truncated, file not yet deleted) still finishes the job.
+	if ((CREATED_THIS_RUN)) && [[ "$(cat "$FILE")" == "$FM" ]]; then
+		rm -- "$FILE"
+	fi
+}
+
+# Janitor mode: detached from the popup's session, so it survives Ghostty's
+# kill. Waits for the capture process to die, then re-runs cleanup under the
+# lock. No-ops if the main process already cleaned up normally.
+if [[ "${1:-}" == "--janitor" ]]; then
+	MAIN_PID="$2" FILE="$3" HM="$4" CREATED_THIS_RUN="$5" FM="${QC_FM:-}"
+	while kill -0 "$MAIN_PID" 2>/dev/null; do sleep 0.5; done
+	exec 9>"$LOCK"
+	flock -w 5 9 || exit 0 # a new session owns the file; its tail-heal covers us
+	cleanup
+	exit 0
+fi
+
+# Whole-session lock (append -> editor -> cleanup); a concurrent invocation
+# must never append or clean up while another session is open on the file.
+exec 9>"$LOCK"
+if ! flock -n 9; then
+	notify-send -u normal "Quick Capture" "A capture session is already open." || true
+	exit 1
+fi
+
+mkdir -p "$QC_DIR"
+read -r DAY HM <<<"$(date '+%F %H:%M')" # single date call: no midnight-rollover skew
+FILE="$QC_DIR/$DAY-QC.md"
+
+# Tail-heal: if both a killed session's cleanup AND its janitor were lost, a
+# trailing whitespace-only "## HH:MM" block is left at EOF. Remove such
+# leftovers before appending. Only exact timestamp headings qualify; any block
+# with content, and all user headings, are untouched.
+if [[ -e "$FILE" ]]; then
+	while :; do
+		stale="$(grep -nE '^## [0-9]{2}:[0-9]{2}$' "$FILE" | tail -n 1 | cut -d: -f1 || true)"
+		[[ -n "$stale" ]] || break
+		awk -v s="$stale" 'NR > s && $0 !~ /^[[:space:]]*$/ { exit 1 }' "$FILE" || break
+		cut="$stale"
+		if ((stale > 1)) && sed -n "$((stale - 1))p" "$FILE" | grep -q '^[[:space:]]*$'; then
+			cut=$((stale - 1))
+		fi
+		truncate -s "$(head -n "$((cut - 1))" "$FILE" | wc -c)" "$FILE"
+	done
+fi
+
+FM="---
+type: quick-capture
+date: \"$DAY\"
+created: \"$DAY $HM\"
+status: inbox
+source: quick-capture
+area:
+project:
+tags: []
+---"
+
+CREATED_THIS_RUN=0
+if [[ ! -e "$FILE" ]]; then
+	printf '%s\n' "$FM" >"$FILE" # frontmatter written exactly once, never regenerated
+	CREATED_THIS_RUN=1
+fi
+
+# Capture block: blank separator, heading, blank line for the cursor.
+printf '\n## %s\n\n' "$HM" >>"$FILE"
+
+trap cleanup EXIT
+# 9>&-: children must not inherit the lock fd — flock lives on the open file
+# description, so an inherited copy would keep the lock held past our death.
+QC_FM="$FM" setsid "$0" --janitor "$$" "$FILE" "$HM" "$CREATED_THIS_RUN" \
+	</dev/null >/dev/null 2>&1 9>&- &
+
+# Last line of the file is the fresh blank line under the heading: jump there,
+# enter Insert mode. $ED intentionally unquoted so a multi-word override splits.
+# The editor runs in the background with stdin rebound to the tty, and we wait
+# on it: unlike a foreground child, `wait` is interruptible by traps, so when
+# the popup window closes (SIGHUP) cleanup starts immediately instead of bash
+# deferring the trap until the editor exits.
+if { : </dev/tty; } 2>/dev/null; then
+	$ED "+normal! G" +startinsert "$FILE" </dev/tty 9>&- &
+else
+	$ED "+normal! G" +startinsert "$FILE" 9>&- & # headless tests: no tty available
+fi
+ED_PID=$!
+trap 'kill -TERM "$ED_PID" 2>/dev/null; exit 129' HUP INT TERM
+wait "$ED_PID" || true

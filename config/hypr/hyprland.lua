@@ -285,6 +285,7 @@ hl.bind(secondMod .. " + F", hl.dsp.window.float({ action = "toggle" })) -- floa
 -- Floating Ethereal-themed TUIs (see window rules at bottom). Binary `gazelle` confirmed post-install.
 hl.bind(secondMod .. " + B", hl.dsp.exec_cmd("ghostty --class=com.ethereal.BtTui -e bluetui")) -- bluetooth TUI
 hl.bind(secondMod .. " + I", hl.dsp.exec_cmd("ghostty --class=com.ethereal.NetTui -e gazelle")) -- network TUI
+hl.bind(secondMod .. " + O", hl.dsp.exec_cmd("$HOME/.local/bin/obsidian-capture-popup")) -- Obsidian quick capture popup
 
 -- Universal copy/paste (Omarchy-style): SUPER+C/V -> Ctrl+Insert / Shift+Insert via
 -- Hyprland's native send_shortcut dispatcher. Those chords copy/paste in terminals AND
@@ -436,5 +437,16 @@ hl.window_rule({
 
 	float = true,
 	size = "900 600",
+	center = true,
+})
+
+-- Obsidian Quick Capture popup (SUPER+SHIFT+O -> ~/.local/bin/obsidian-capture-popup).
+-- Monitor-relative size so it scales to any display.
+hl.window_rule({
+	name = "float-quick-capture",
+	match = { class = "com.ethereal.QuickCapture" },
+
+	float = true,
+	size = "monitor_w*0.5 monitor_h*0.65",
 	center = true,
 })
