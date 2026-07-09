@@ -13,7 +13,9 @@
 set -uo pipefail
 
 QC_DIR="${QC_PROCESS_DIR:-$HOME/Documents/BigB-PKM/02 - Fleeting Notes}"
-HERMES="${QC_PROCESS_HERMES:-$HOME/.local/bin/hermes}" # unquoted at call site: test fakes may be multi-word
+# Sonnet is pinned: this is mechanical restructuring, and Opus burns ~5x the
+# Max-plan quota for no quality gain. QC_PROCESS_HERMES overrides entirely.
+HERMES="${QC_PROCESS_HERMES:-$HOME/.local/bin/hermes --provider anthropic -m claude-sonnet-5}" # unquoted at call site: multi-word ok
 LOCK="${XDG_RUNTIME_DIR:-/tmp}/obsidian-quick-capture.lock"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}"
 LOG="$STATE/qc-process.log"
