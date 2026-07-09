@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+# qc-process: group @context-marked captures in daily QC notes under topic
+# headers via a hermes one-shot. Backup + verbatim-prose rails + restore on
+# failure — the AI is never trusted with the only copy.
+#
+#   qc-process              process today's note
+#   qc-process YYYY-MM-DD   process that day's note
+#   qc-process --pending    process every *-QC.md containing raw ## HH:MM blocks
+#
+# The nightly timer (qc-process.timer, 23:30) runs --pending: a note is
+# "unprocessed" iff it still contains a raw "## HH:MM" heading, so skipped
+# nights and post-processing captures self-heal on the next run.
+set -uo pipefail
+
+QC_DIR="${QC_PROCESS_DIR:-$HOME/Documents/BigB-PKM/02 - Fleeting Notes}"
+HERMES="${QC_PROCESS_HERMES:-$HOME/.local/bin/hermes}" # unquoted at call site: test fakes may be multi-word
+LOCK="${XDG_RUNTIME_DIR:-/tmp}/obsidian-quick-capture.lock"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}"
+LOG="$STATE/qc-process.log"
+BAK_DIR="$STATE/qc-process/backups"
+USAGE_DIR="$STATE/qc-process/usage"
+TIMEOUT_S="${QC_PROCESS_TIMEOUT:-300}"
+RAW_RE='^## [0-9]{2}:[0-9]{2}$'
+MARKER_RE='^@[a-z0-9][a-z0-9_-]*([[:space:]]+@[a-z0-9][a-z0-9_-]*)*[[:space:]]*$'
+
+mkdir -p "$BAK_DIR" "$USAGE_DIR"
+log()    { printf '%s  %s\n' "$(date '+%F %H:%M:%S')" "$*" >>"$LOG"; }
+notify() { notify-send -a "QC Process" "$@" 2>/dev/null || true; }
+
+# Whole-run lock, shared with the capture popup: never rewrite a note while a
+# capture session is open (hermes read -> capture append -> hermes write would
+# silently lose the capture). A popup opened mid-run gets the polite
+# "already open" notify; a skipped night is picked up by the next --pending.
+exec 9>"$LOCK"
+if ! flock -n 9; then
+	log "skipped run: capture session open (lock held)"
+	exit 0
+fi
+
+# ---- file selection --------------------------------------------------------
+declare -a FILES=()
+case "${1:-}" in
+--pending)
+	while IFS= read -r -d '' f; do
+		grep -qE "$RAW_RE" "$f" && FILES+=("$f")
+	done < <(find "$QC_DIR" -maxdepth 1 -name '*-QC.md' -print0 | sort -z)
+	;;
+"")
+	FILES=("$QC_DIR/$(date +%F)-QC.md")
+	;;
+*)
+	[[ $1 =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || { echo "usage: qc-process [YYYY-MM-DD|--pending]" >&2; exit 2; }
+	FILES=("$QC_DIR/$1-QC.md")
+	;;
+esac
+((${#FILES[@]})) || { log "nothing pending"; exit 0; }
+
+# ---- helpers ----------------------------------------------------------------
+extract_fm() { # frontmatter including both --- fences (line 1 must be ---)
+	awk 'NR==1 && $0!="---"{exit} {print} NR>1 && $0=="---"{exit}' "$1"
+}
+extract_prose() { # body minus frontmatter, raw headings, marker-only lines, blanks
+	awk '
+		NR==1 && $0=="---" { fm=1; next }
+		fm { if ($0=="---") fm=0; next }
+		/^## [0-9][0-9]:[0-9][0-9]$/ { next }
+		/^@[a-z0-9][a-z0-9_-]*([ \t]+@[a-z0-9][a-z0-9_-]*)*[ \t]*$/ { next }
+		/^[ \t]*$/ { next }
+		{ print }
+	' "$1"
+}
+build_prompt() { # $1 = bare filename (no spaces — hermes runs with CWD = captures dir)
+	cat <<EOF
+You are a note-processing agent. Work only inside the current directory.
+
+Task: restructure the Obsidian quick-capture note "$1" — use exactly this
+relative filename with read_file and write_file — by grouping timestamped
+captures under topic headers.
+
+INPUT FORMAT
+- YAML frontmatter between the first two "---" lines. Copy it through
+  BYTE-IDENTICAL: never edit, reorder, requote, or reformat any of it.
+- Possibly some already-processed sections: "## <Topic>" headers whose
+  entries begin with bold "**HH:MM** —" timestamps.
+- One or more raw capture blocks: a heading line matching exactly
+  "## HH:MM" (24-hour time), then the capture body. The body's FIRST line
+  may be a marker line: a line consisting ONLY of one or more @markers
+  separated by spaces (examples: "@coursera @sql", "@satsang-diksha",
+  "@idea @hermes"). Markers are free-form kebab-case. A line containing
+  any non-marker word is prose, not a marker line.
+
+TRANSFORM every raw "## HH:MM" block:
+1. Determine its topic:
+   - With a marker line: map each marker via the table below and join
+     multiple markers with " · " in the order written.
+   - Without a marker line: infer a short 2-4 word title from the content
+     (for example "Weekly Schedule"). Never use a generic bucket like
+     "Misc", "Untagged", or "Notes", and never a title that is only a
+     time or date.
+2. Delete the marker line entirely.
+3. Prefix the FIRST remaining body line with "**HH:MM** — " using the
+   block's own timestamp (bold time, space, em dash, space). Every body
+   line must otherwise stay VERBATIM — do not rewrite, rephrase, fix
+   spelling, translate, truncate, or reformat any prose. Subsequent body
+   lines follow unchanged, in order.
+4. Put the entry under a "## <Topic>" header. If that exact topic header
+   already exists (from earlier processing or another block this run),
+   merge into it, ordering its entries chronologically by their **HH:MM**
+   stamps. Otherwise create a new section.
+5. A raw block whose body is empty or whitespace-only: drop it silently.
+
+MARKER → DISPLAY NAME (single markers; combinations join with " · ").
+Unlisted markers: Title-Case the kebab-case marker (@car-stuff → "Car Stuff").
+  @satsang         → Satsang
+  @satsang-diksha  → Satsang · Satsang Diksha
+  @vachanamrut     → Satsang · Vachanamrut
+  @swamini-vato    → Satsang · Swamini Vato
+  @coursera        → Coursera
+  @sql             → SQL
+  @python          → Python
+  @ai-engineering  → AI Engineering
+  @evals           → Evals
+  @rag             → RAG
+  @idea            → Ideas
+  @business        → Business
+  @hermes          → Hermes
+  @argus           → Argus
+  @av              → AV Seva
+Examples: "@coursera @sql" → "Coursera · SQL"; "@idea @hermes" → "Ideas · Hermes".
+
+OUTPUT LAYOUT: frontmatter byte-identical, blank line, then topic sections
+in order of first appearance (chronological); keeping "Satsang" and
+"Satsang · ..." sections adjacent to each other is fine. Each section:
+"## <Topic>", blank line, entries separated by blank lines. When done, the
+file must contain NO "## HH:MM" headings and NO marker-only lines, and must
+not end with an empty heading.
+
+Write the complete result back to "$1" with write_file (full replacement,
+same filename). Then reply with exactly: done
+EOF
+}
+
+process_file() {
+	local file="$1" base day
+	base="$(basename "$file")"
+	day="${base%-QC.md}"
+	[[ -e "$file" ]] || { log "skip $base: file does not exist"; return 0; }
+	grep -qE "$RAW_RE" "$file" || { log "skip $base: no raw captures (already processed)"; return 0; }
+
+	local bak="$BAK_DIR/$base.$(date +%Y%m%d-%H%M%S)"
+	cp -- "$file" "$bak" || { log "FAIL $base: backup copy failed"; notify -u critical "QC process failed" "$base: backup failed, aborting"; return 1; }
+	ls -1t -- "$BAK_DIR" | tail -n +21 | while IFS= read -r old; do rm -f -- "$BAK_DIR/$old"; done
+
+	local prose ufile prompt rc=0
+	prose="$(extract_prose "$bak")"
+	ufile="$USAGE_DIR/$day.$(date +%s).json"
+	prompt="$(build_prompt "$base")"
+
+	( cd "$QC_DIR" && timeout "$TIMEOUT_S" $HERMES -z "$prompt" -t file --usage-file "$ufile" >/dev/null 2>&1 ) || rc=$?
+
+	# Rails: the script, not the AI, decides whether this worked.
+	# HARD rails (data integrity) restore the backup; SOFT rails (incomplete
+	# transform) accept the result — a leftover raw heading is re-selected by
+	# the next --pending run, so restoring would only cause a retry loop.
+	local why=""
+	if [[ ! -e "$file" ]]; then
+		why="file missing after hermes"
+	elif cmp -s -- "$bak" "$file"; then
+		log "FAIL $base: hermes made no changes (rc=$rc)"
+		notify -u critical "QC process failed" "$day: hermes made no changes (rc=$rc)"
+		return 1
+	elif (($(grep -c '^---$' "$file") < 2)); then
+		why="frontmatter fence lost"
+	elif ! grep -q '^type: quick-capture$' "$file"; then
+		why="type: quick-capture lost"
+	elif ! diff -q <(extract_fm "$bak") <(extract_fm "$file") >/dev/null; then
+		why="frontmatter changed"
+	else
+		# Verbatim-prose rail: every original body line must still be present
+		# (substring match: first lines legitimately gain the **HH:MM** prefix).
+		while IFS= read -r line; do
+			[[ -z "$line" ]] && continue
+			grep -Fq -e "$line" -- "$file" || { why="prose line lost: ${line:0:60}"; break; }
+		done <<<"$prose"
+	fi
+
+	if [[ -n "$why" ]]; then
+		cp -- "$bak" "$file" # overwrite in place: preserves inode (Obsidian-friendly)
+		log "FAIL $base: $why (hermes rc=$rc); restored from $bak"
+		notify -u critical "QC process failed" "$day: $why — original restored"
+		return 1
+	fi
+
+	local warn=""
+	grep -qE "$RAW_RE" "$file" && warn=" (partial: raw blocks remain, will retry)"
+	grep -qE "$MARKER_RE" "$file" && warn+=" (marker lines left in place)"
+
+	local topics cost=""
+	topics="$(grep -c '^## ' "$file")"
+	command -v jq >/dev/null && cost="$(jq -r '.estimated_cost_usd // empty' "$ufile" 2>/dev/null)"
+	log "processed $base topics=$topics hermes_rc=$rc cost=\$${cost:-?}$warn"
+	notify "QC processed" "Processed $day QC — $topics topics$warn"
+	return 0
+}
+
+overall=0
+for f in "${FILES[@]}"; do process_file "$f" || overall=1; done
+exit $overall

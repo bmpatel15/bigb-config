@@ -1,0 +1,6 @@
+[Unit]
+Description=Group @context markers in daily QC notes into topic headers (hermes)
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/qc-process --pending
