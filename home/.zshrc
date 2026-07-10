@@ -135,7 +135,8 @@ command -v fnm    >/dev/null && eval "$(fnm env --use-on-cd)"
 # ── Aliases ────────────────────────────────────────────────────────────
 alias home='cd ~'
 alias config='cd ~/.config'
-alias ov='cd ~/Documents/BigB-PKM/'
+alias dot='cd ~/bigb-config/'
+alias ov='cd ~/Documents/BigB-PKM/ && nvim'
 alias reload='exec zsh'
 # modern replacements (only if installed)
 if command -v eza >/dev/null; then
