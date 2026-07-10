@@ -13,8 +13,8 @@ One script (`install.sh`) turns a **plain Arch base install** into this full des
 - **Hyprland** Wayland desktop — Waybar (bar), Rofi (launcher), swaync (notifications), hypridle + hyprlock (idle/lock), wlogout (power menu), `uwsm` session manager.
 - **Ghostty** terminal + **zsh** (oh-my-zsh + powerlevel10k + fzf-tab/autosuggestions/syntax-highlighting).
 - **Neovim** (LazyVim, Ethereal colorscheme), **tmux** (Ethereal, TPM plugins), **yazi** file manager.
-- **PipeWire** audio, **NetworkManager**, `xdg-desktop-portal-hyprland`, grim/slurp screenshots, Bibata cursor, Zen browser.
-- **Claude Code** CLI, and a `system-maintenance` user timer.
+- **PipeWire** audio, **NetworkManager**, `xdg-desktop-portal-hyprland`, grim/slurp screenshots, Bibata cursor, **Chromium** (with per-mode profiles + Ethereal theme).
+- **Claude Code** CLI, and `system-maintenance` + `qc-process` user timers.
 
 ---
 
@@ -78,7 +78,7 @@ It runs these phases in order (the `all` target):
 | 5 | **Shell** | Installs oh-my-zsh + powerlevel10k + zsh plugins, and sets your login shell to `zsh`. |
 | 6 | **Font** | Installs **JetBrainsMono Nerd Font**. |
 | 7 | **Claude Code** | Installs the `claude` CLI. |
-| 8 | **Timers** | Enables the `system-maintenance` user systemd timer. |
+| 8 | **Timers** | Enables the `system-maintenance` and `qc-process` user systemd timers. |
 
 When it finishes, it prints the remaining manual steps (below).
 
@@ -95,7 +95,8 @@ These are intentionally **not** automated:
    ```sh
    git -C ~/bigb-config remote set-url origin git@github.com:bmpatel15/bigb-config.git
    ```
-2. **Sign in** — Zen browser, and Claude Code (`claude`).
+2. **Sign in** — Chromium (per profile), and Claude Code (`claude`).
+   Chromium profiles: run `bash ~/bigb-config/setup/chromium-profiles.sh` (browser closed), then per profile load the unpacked theme: `chrome://extensions` → Developer mode → Load unpacked → `~/bigb-config/chromium/ethereal-theme`.
 3. **Obsidian vault** — restore it to `~/Documents/BigB-PKM` from your own sync/backup.
 4. **btrfs snapshots** — set up snapper (see [below](#btrfs-snapshots-do-once-needs-root)).
 
@@ -120,7 +121,8 @@ uwsm start hyprland
 | `home/` | Home dotfiles (`.zshrc`, `.p10k.zsh`, `.gitconfig`) |
 | `packages/pacman.txt` | Explicit packages (`pacman -Qqe`) — repo + AUR, fed to `yay` |
 | `packages/aur.txt` | Foreign/AUR packages (`pacman -Qqm`) — reference/audit list |
-| `setup/`, `systemd/` | Extra setup assets and user systemd units |
+| `setup/` | Extra one-time setup scripts (root system setup, Chromium profiles) |
+| `config/systemd/user/` | User systemd units (`system-maintenance`, `qc-process` timers) |
 
 ---
 
@@ -193,7 +195,7 @@ sudo systemctl enable --now snapper-timeline.timer snapper-cleanup.timer
 ## Manual steps recap
 
 - Restore `~/.ssh` keys (or generate + add pubkey to GitHub, then switch the remote to SSH).
-- Sign in: Zen browser, Claude Code (`claude`).
+- Sign in: Chromium (per profile), Claude Code (`claude`).
 - Restore the Obsidian vault to `~/Documents/BigB-PKM` (own sync/backup).
 - Set up snapper for btrfs rollback.
 - Log out/in so the zsh login shell + Hyprland session take effect.

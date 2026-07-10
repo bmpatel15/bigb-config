@@ -150,6 +150,7 @@ enable_timers() {
     log "User systemd timers"
     systemctl --user daemon-reload
     systemctl --user enable --now system-maintenance.timer && info "enabled: system-maintenance.timer"
+    systemctl --user enable --now qc-process.timer          && info "enabled: qc-process.timer"
 }
 
 main() {

@@ -13,6 +13,7 @@ bluez-utils
 brightnessctl
 btop
 btrfs-progs
+chromium
 cliphist
 cups
 cups-pk-helper
@@ -51,6 +52,7 @@ level-zero-loader
 libpulse
 linux-firmware
 linux-zen
+ly
 man-db
 man-pages
 mkinitcpio
@@ -93,6 +95,7 @@ swappy
 swaync
 system-config-printer
 tailscale
+terminus-font
 thermald
 tmux
 ttf-jetbrains-mono-nerd
@@ -116,7 +119,6 @@ ydotool
 zathura
 zathura-pdf-mupdf
 zellij
-zen-browser-bin
 zip
 zoxide
 zram-generator
