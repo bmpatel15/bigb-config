@@ -1,0 +1,17 @@
+{
+  "Today's date": {
+    "prefix": "date",
+    "body": "$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE",
+    "description": "Insert today's date (YYYY-MM-DD)"
+  },
+  "Current time": {
+    "prefix": "time",
+    "body": "$CURRENT_HOUR:$CURRENT_MINUTE",
+    "description": "Insert current time (HH:MM)"
+  },
+  "Datetime stamp": {
+    "prefix": "dts",
+    "body": "$CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE $CURRENT_HOUR:$CURRENT_MINUTE",
+    "description": "Insert date and time"
+  }
+}

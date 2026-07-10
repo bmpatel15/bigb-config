@@ -1,0 +1,46 @@
+{
+  "Main guard": {
+    "prefix": "main",
+    "body": [
+      "def main() -> None:",
+      "\t$0",
+      "",
+      "",
+      "if __name__ == \"__main__\":",
+      "\tmain()"
+    ],
+    "description": "main() with __main__ guard"
+  },
+  "Pytest function": {
+    "prefix": "test",
+    "body": [
+      "def test_${1:name}() -> None:",
+      "\t$0"
+    ],
+    "description": "pytest test function"
+  },
+  "Dataclass": {
+    "prefix": "dc",
+    "body": [
+      "@dataclass",
+      "class ${1:Name}:",
+      "\t${2:field}: ${3:str}$0"
+    ],
+    "description": "Dataclass (needs: from dataclasses import dataclass)"
+  },
+  "Breakpoint": {
+    "prefix": "bp",
+    "body": "breakpoint()$0",
+    "description": "Drop into the debugger here"
+  },
+  "Module logger": {
+    "prefix": "logg",
+    "body": [
+      "import logging",
+      "",
+      "logger = logging.getLogger(__name__)",
+      "$0"
+    ],
+    "description": "Module-level logger setup"
+  }
+}

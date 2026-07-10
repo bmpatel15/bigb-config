@@ -1,0 +1,50 @@
+{
+  "Note frontmatter": {
+    "prefix": "fm",
+    "body": [
+      "---",
+      "type: ${1:note}",
+      "created: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE",
+      "status: ${2:active}",
+      "tags:",
+      "  - ${3:tag}",
+      "---",
+      "",
+      "# ${4:$TM_FILENAME_BASE}",
+      "",
+      "$0"
+    ],
+    "description": "Obsidian note frontmatter with today's date and filename as title"
+  },
+  "Callout": {
+    "prefix": "call",
+    "body": [
+      "> [!${1:note}] ${2:Title}",
+      "> $0"
+    ],
+    "description": "Obsidian callout (note, tip, warning, info, quote...)"
+  },
+  "Code block": {
+    "prefix": "cb",
+    "body": [
+      "```${1:python}",
+      "$0",
+      "```"
+    ],
+    "description": "Fenced code block"
+  },
+  "Table": {
+    "prefix": "tbl",
+    "body": [
+      "| ${1:Column} | ${2:Column} |",
+      "|---|---|",
+      "| $0 |  |"
+    ],
+    "description": "Markdown table skeleton"
+  },
+  "Link": {
+    "prefix": "lnk",
+    "body": "[${1:text}](${2:url})$0",
+    "description": "Markdown link"
+  }
+}
