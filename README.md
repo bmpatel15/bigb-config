@@ -108,13 +108,13 @@ These are intentionally **not** automated:
 
 ### 5. Start your session
 
-This repo installs **`uwsm`** (Universal Wayland Session Manager) but deliberately configures **no display manager / greeter**. After a reboot, log in at the TTY and launch Hyprland:
+Login is handled by the **Ly display manager** (`ly@tty1.service`), with one-shot boot autologin into Hyprland and the Ethereal VT palette. Ly's config lives in `/etc/ly/` (system-level, root-owned) — it is **not** symlinked by `install.sh`; set it up once per machine following [`docs/ly-autologin-setup.md`](docs/ly-autologin-setup.md), then check it with:
 
 ```sh
-uwsm start hyprland
+ly-status        # read-only diagnostic (services, autologin arming, config sanity)
 ```
 
-> Want it automatic? Add a greeter (e.g. `greetd` + `tuigreet`, or `ly`), or a `~/.zprofile` hook — neither is managed by this repo. Log out/in once so the zsh login shell fully takes effect.
+> Until Ly is set up, log in at the TTY and run `uwsm start hyprland` manually. Log out/in once so the zsh login shell fully takes effect.
 
 ---
 
@@ -128,6 +128,8 @@ uwsm start hyprland
 | `claude/` | Claude Code config: slash commands (`~/.claude/commands`), `settings.json`, project permissions (`~/.config/.claude`) — all LINKED. Credentials/history/sessions stay out of the repo |
 | `packages/pacman.txt` | Explicit packages (`pacman -Qqe`) — repo + AUR, fed to `yay` |
 | `packages/aur.txt` | Foreign/AUR packages (`pacman -Qqm`) — reference/audit list |
+| `bin/` | User scripts, LINKED into `~/.local/bin` (quick-capture, `qc-process`, `ly-status`) |
+| `docs/` | Machine docs (Ly display-manager / autologin setup) |
 | `setup/` | Extra one-time setup scripts (root system setup, Chromium profiles) |
 | `config/systemd/user/` | User systemd units (`system-maintenance`, `qc-process` timers) |
 

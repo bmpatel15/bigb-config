@@ -1,0 +1,118 @@
+#!/bin/bash
+# ly-status — read-only diagnostic for the Ly display-manager setup on jarvis.
+# Reports service state, autologin arming, sessions, and config sanity.
+# Makes NO changes to the system.
+# See ~/bigb-config/docs/ly-autologin-setup.md for the full architecture.
+
+set -u
+
+BOLD=$'\033[1m'; DIM=$'\033[2m'; RED=$'\033[31m'; GRN=$'\033[32m'
+YLW=$'\033[33m'; CYN=$'\033[36m'; RST=$'\033[0m'
+
+hdr() { printf '\n%s== %s ==%s\n' "$BOLD$CYN" "$1" "$RST"; }
+ok()  { printf '  %s[ok]%s   %s\n' "$GRN" "$RST" "$1"; }
+warn() { printf '  %s[warn]%s %s\n' "$YLW" "$RST" "$1"; }
+bad() { printf '  %s[!!]%s   %s\n' "$RED" "$RST" "$1"; }
+info() { printf '  %s\n' "$1"; }
+
+CFG=/etc/ly/config.ini
+
+hdr "Ly version"
+info "$(ly-dm --version 2>&1 || echo 'ly-dm not found')"
+info "package: $(pacman -Q ly 2>/dev/null || echo 'not installed')"
+
+hdr "Display manager services"
+for u in ly@tty1.service ly-kmsconvt@tty1.service getty@tty1.service; do
+    en=$(systemctl is-enabled "$u" 2>/dev/null || true); en=${en:-not-found}
+    ac=$(systemctl is-active "$u" 2>/dev/null || true); ac=${ac:-unknown}
+    info "$u: enabled=$en active=$ac"
+done
+if [[ $(systemctl is-enabled ly@tty1.service 2>/dev/null) == enabled ]]; then
+    ok "ly@tty1.service is the enabled login path"
+else
+    warn "ly@tty1.service is not enabled — Ly will not run at boot"
+fi
+if [[ -L /etc/systemd/system/display-manager.service ]]; then
+    info "display-manager.service -> $(readlink /etc/systemd/system/display-manager.service)"
+else
+    info "display-manager.service: absent (expected — Arch's ly@.service ships no Alias)"
+fi
+if [[ -d /etc/systemd/system/getty@tty1.service.d ]]; then
+    bad "getty@tty1 drop-in override exists (should NOT — check for stray autologin):"
+    ls /etc/systemd/system/getty@tty1.service.d/
+else
+    ok "no getty@tty1 drop-in overrides (no generic TTY autologin)"
+fi
+
+hdr "One-shot boot autologin (native Ly)"
+al_user=$(sed -n 's/^auto_login_user = //p' "$CFG" 2>/dev/null)
+al_sess=$(sed -n 's/^auto_login_session = //p' "$CFG" 2>/dev/null)
+al_svc=$(sed -n 's/^auto_login_service = //p' "$CFG" 2>/dev/null)
+info "auto_login_user=${al_user:-<unset>} auto_login_session=${al_sess:-<unset>} auto_login_service=${al_svc:-<unset>}"
+if [[ -n $al_user && $al_user != null && -n $al_sess && $al_sess != null ]]; then
+    ok "autologin ARMED: next ly-dm start (i.e. next boot) logs '$al_user' into '$al_sess' once"
+else
+    warn "autologin DISARMED: every login requires a password"
+fi
+info "note: 'one shot' is in-process state of ly-dm (is_autologin flag), not an on-disk marker;"
+info "      after the first session exits, ly-dm returns to a password-only greeter until restarted"
+if [[ -f /etc/ly/save.ini ]]; then
+    info "save file: /etc/ly/save.ini present (greeter pre-fills last user/session)"
+else
+    info "save file: /etc/ly/save.ini not yet written (created after first interactive login)"
+fi
+
+hdr "Sessions"
+loginctl list-sessions --no-legend 2>/dev/null | while read -r sid uid user _; do
+    cls=$(loginctl show-session "$sid" -p Class --value 2>/dev/null)
+    typ=$(loginctl show-session "$sid" -p Type --value 2>/dev/null)
+    svc=$(loginctl show-session "$sid" -p Service --value 2>/dev/null)
+    tty=$(loginctl show-session "$sid" -p TTY --value 2>/dev/null)
+    info "session $sid: user=$user tty=${tty:-—} type=$typ class=$cls service=$svc"
+done
+info "available wayland sessions:"
+for f in /usr/share/wayland-sessions/*.desktop; do
+    info "  $(basename "$f"): $(sed -n 's/^Exec=//p' "$f")"
+done
+
+hdr "Conflicting display managers"
+found_dm=0
+for dm in sddm gdm lightdm greetd emptty lemurs; do
+    if systemctl list-unit-files "${dm}.service" --no-legend 2>/dev/null | grep -q .; then
+        en=$(systemctl is-enabled "${dm}.service" 2>/dev/null)
+        [[ $en == enabled ]] && { bad "${dm}.service is ENABLED — conflicts with ly@tty1"; found_dm=1; } \
+                             || { warn "${dm}.service present but $en"; found_dm=1; }
+    fi
+done
+[[ $found_dm -eq 0 ]] && ok "no other display manager installed"
+
+hdr "Legacy autostart"
+zp_target=$(readlink -f "$HOME/.zprofile" 2>/dev/null || echo "$HOME/.zprofile")
+if grep -q start-hyprland "$HOME/.zprofile" 2>/dev/null; then
+    warn ".zprofile still contains a start-hyprland autostart block ($zp_target)"
+else
+    ok ".zprofile has no Hyprland autostart block (Ly owns login)"
+fi
+
+hdr "Console (greeter rendering)"
+info "$(grep -v '^#' /etc/vconsole.conf 2>/dev/null | tr '\n' ' ')"
+grep -q "Ethereal" /etc/ly/startup.sh 2>/dev/null \
+    && ok "Ethereal VT palette active in /etc/ly/startup.sh" \
+    || warn "/etc/ly/startup.sh has no Ethereal palette block"
+
+hdr "Config sanity (vs packaged example)"
+# Ly 1.4.1 has no validate flag; compare key names against config.ini.example.
+if [[ -f /etc/ly/config.ini.example ]]; then
+    unknown=$(comm -23 \
+        <(grep -oP '^[a-z_0-9]+(?= =)' "$CFG" | sort -u) \
+        <(grep -oP '^#?\s*[a-z_0-9]+(?= =)' /etc/ly/config.ini.example | tr -d '# ' | sort -u) \
+        | grep -v '^\[' || true)
+    if [[ -z $unknown ]]; then
+        ok "all config.ini keys exist in config.ini.example (no unknown keys)"
+    else
+        bad "keys not found in packaged example: $unknown"
+    fi
+else
+    warn "config.ini.example missing — cannot cross-check keys"
+fi
+echo
