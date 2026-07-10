@@ -78,7 +78,9 @@ It runs these phases in order (the `all` target):
 | 5 | **Shell** | Installs oh-my-zsh + powerlevel10k + zsh plugins, and sets your login shell to `zsh`. |
 | 6 | **Font** | Installs **JetBrainsMono Nerd Font**. |
 | 7 | **Claude Code** | Installs the `claude` CLI. |
-| 8 | **Timers** | Enables the `system-maintenance` and `qc-process` user systemd timers. |
+| 8 | **Hermes** | Installs the [Hermes agent](https://github.com/NousResearch/hermes-agent) (official installer) — the AI CLI that `qc-process` uses for the nightly QC pass. |
+| 9 | **Argus** | Clones the private `argus` repo to `~/Projects/argus` and links `~/.local/bin/argus` (skips gracefully until SSH keys are set up). |
+| 10 | **Timers** | Enables the `system-maintenance` and `qc-process` user systemd timers. |
 
 When it finishes, it prints the remaining manual steps (below).
 
@@ -97,8 +99,12 @@ These are intentionally **not** automated:
    ```
 2. **Sign in** — Chromium (per profile), and Claude Code (`claude` — its `pyright-lsp` plugin auto-installs from the tracked `settings.json` on first run).
    Chromium profiles: run `bash ~/bigb-config/setup/chromium-profiles.sh` (browser closed), then per profile load the unpacked theme: `chrome://extensions` → Developer mode → Load unpacked → `~/bigb-config/chromium/ethereal-theme`.
-3. **Obsidian vault** — restore it to `~/Documents/BigB-PKM` from your own sync/backup.
-4. **btrfs snapshots** — set up snapper (see [below](#btrfs-snapshots-do-once-needs-root)).
+3. **Obsidian vault** — clone it **before** the nightly `qc-process` timer fires (quick-capture and argus write into it):
+   ```sh
+   git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM
+   ```
+4. **API keys** — run `hermes` once to configure its keys (`qc-process` depends on it), and create `~/.config/argus/api_key`. Neither is tracked in git.
+5. **btrfs snapshots** — set up snapper (see [below](#btrfs-snapshots-do-once-needs-root)).
 
 ### 5. Start your session
 
@@ -148,6 +154,8 @@ Two strategies, chosen per app by whether the app rewrites its own config file:
 ./install.sh restore        # copy COPIED configs from repo -> ~ (fresh machine)
 ./install.sh sync           # pull live COPIED configs from ~ -> repo (before a commit)
 ./install.sh sync-packages  # regenerate packages/{pacman,aur}.txt from installed packages
+./install.sh hermes         # install the Hermes agent (needed by qc-process)
+./install.sh argus          # clone the argus repo + link ~/.local/bin/argus
 ```
 
 ---
@@ -198,6 +206,7 @@ sudo systemctl enable --now snapper-timeline.timer snapper-cleanup.timer
 
 - Restore `~/.ssh` keys (or generate + add pubkey to GitHub, then switch the remote to SSH).
 - Sign in: Chromium (per profile), Claude Code (`claude`).
-- Restore the Obsidian vault to `~/Documents/BigB-PKM` (own sync/backup).
+- Clone the Obsidian vault: `git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM`.
+- Run `hermes` once to configure API keys; create `~/.config/argus/api_key`.
 - Set up snapper for btrfs rollback.
 - Log out/in so the zsh login shell + Hyprland session take effect.

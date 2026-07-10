@@ -2,12 +2,14 @@
 # bigb-config — Arch Linux + Hyprland setup bootstrap.
 #
 # Idempotent; safe to re-run. Subcommands:
-#   ./install.sh          full setup: packages -> AUR -> links -> tmux -> shell -> font -> claude
+#   ./install.sh          full setup: packages -> links -> tmux -> shell -> font -> claude -> hermes -> argus -> timers
 #   ./install.sh links    only (re)create the hand-edited config symlinks
 #   ./install.sh tmux     clone TPM + install tmux plugins (needs the tmux symlink)
 #   ./install.sh restore  copy app-managed configs from repo -> ~ (fresh machine)
 #   ./install.sh sync     pull live app-managed configs from ~ -> repo (before commit)
 #   ./install.sh sync-packages  regenerate packages/{pacman,aur}.txt from installed packages
+#   ./install.sh hermes   install the Hermes agent (needed by qc-process)
+#   ./install.sh argus    clone the argus repo + link ~/.local/bin/argus
 #
 # Two tracking strategies (see arrays below):
 #   LINKED  — configs WE hand-edit; ~/.config/<x> is a symlink into this repo,
@@ -151,6 +153,26 @@ install_claude() {
     curl -fsSL https://claude.ai/install.sh | bash
 }
 
+install_hermes() { # required by qc-process (nightly QC pass)
+    log "Hermes agent"
+    [[ -x "$HOME/.local/bin/hermes" ]] && { info "already installed"; return; }
+    curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+    info "configure API keys on first run:  hermes"
+}
+
+setup_argus() { # research agent; its state lives in the vault (~/Documents/BigB-PKM/.argus)
+    log "Argus research agent"
+    if [[ ! -d "$HOME/Projects/argus" ]]; then
+        GIT_CONFIG_GLOBAL=/dev/null git clone git@github.com:bmpatel15/argus.git "$HOME/Projects/argus" \
+            || { info "clone failed — needs SSH keys with access to the private repo; retry later with: ./install.sh argus"; return 0; }
+    else
+        info "ok: ~/Projects/argus"
+    fi
+    mkdir -p "$HOME/.local/bin"
+    link "$HOME/Projects/argus/bin/argus" "$HOME/.local/bin/argus"
+    [[ -f "$HOME/.config/argus/api_key" ]] || info "reminder: create ~/.config/argus/api_key (not tracked in git)"
+}
+
 enable_timers() {
     log "User systemd timers"
     systemctl --user daemon-reload
@@ -165,7 +187,9 @@ main() {
         restore) restore_copies ;;
         sync)    sync_copies ;;
         sync-packages) sync_packages ;;
-        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_omz; set_shell; install_font; install_claude; enable_timers
+        hermes)  install_hermes ;;
+        argus)   setup_argus ;;
+        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; enable_timers
                  log "Done"
                  cat <<'EOF'
 
@@ -175,12 +199,15 @@ main() {
       * Chromium: run  bash ~/bigb-config/setup/chromium-profiles.sh  (browser closed),
         then per profile: chrome://extensions -> Developer mode -> Load unpacked ->
         ~/bigb-config/chromium/ethereal-theme
-      * Restore the Obsidian vault to ~/Documents/BigB-PKM (own sync/backup).
+      * Clone the Obsidian vault BEFORE the nightly qc-process timer fires:
+          git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM
+      * Run `hermes` once to configure its API keys (qc-process depends on it).
+      * Create ~/.config/argus/api_key (argus API key; never committed).
       * Set up snapper (see README) for btrfs snapshot rollback.
       * Log out/in so the zsh login shell + Hyprland session take effect.
 EOF
                  ;;
-        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages]" >&2; exit 1 ;;
+        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|hermes|argus]" >&2; exit 1 ;;
     esac
 }
 main "$@"
