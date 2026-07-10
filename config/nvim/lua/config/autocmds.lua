@@ -212,3 +212,16 @@ vim.api.nvim_create_autocmd("FileType", {
     end
   end,
 })
+
+-- Never autoformat markdown on save: vault notes (Obsidian, Quick Capture)
+-- must stay byte-identical across :w. LazyVim.format.enabled() gives
+-- vim.b.autoformat absolute precedence over the global toggle, so no formatter
+-- (prettier, LSP fallback, future additions) can rewrite a note. Deliberate
+-- formatting still works via <leader>cf / :LazyFormat (those force-run).
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("bigb_markdown_noformat", { clear = true }),
+  pattern = "markdown",
+  callback = function(ev)
+    vim.b[ev.buf].autoformat = false
+  end,
+})
