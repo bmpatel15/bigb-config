@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash -n /home/bmpatel15/bigb-config/install.sh)",
+      "Bash(/home/bmpatel15/.local/bin/argus --help)",
+      "Read(//home/bmpatel15/Documents/BigB-PKM/**)"
+    ]
+  }
+}

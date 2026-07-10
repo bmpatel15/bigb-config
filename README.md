@@ -95,7 +95,7 @@ These are intentionally **not** automated:
    ```sh
    git -C ~/bigb-config remote set-url origin git@github.com:bmpatel15/bigb-config.git
    ```
-2. **Sign in** — Chromium (per profile), and Claude Code (`claude`).
+2. **Sign in** — Chromium (per profile), and Claude Code (`claude` — its `pyright-lsp` plugin auto-installs from the tracked `settings.json` on first run).
    Chromium profiles: run `bash ~/bigb-config/setup/chromium-profiles.sh` (browser closed), then per profile load the unpacked theme: `chrome://extensions` → Developer mode → Load unpacked → `~/bigb-config/chromium/ethereal-theme`.
 3. **Obsidian vault** — restore it to `~/Documents/BigB-PKM` from your own sync/backup.
 4. **btrfs snapshots** — set up snapper (see [below](#btrfs-snapshots-do-once-needs-root)).
@@ -119,6 +119,7 @@ uwsm start hyprland
 | `install.sh` | Idempotent bootstrap (packages, symlinks, tmux plugins, oh-my-zsh, font, Claude Code, timers) |
 | `config/` | `~/.config/*` app configs |
 | `home/` | Home dotfiles (`.zshrc`, `.p10k.zsh`, `.gitconfig`) |
+| `claude/` | Claude Code config: slash commands (`~/.claude/commands`), `settings.json`, project permissions (`~/.config/.claude`) — all LINKED. Credentials/history/sessions stay out of the repo |
 | `packages/pacman.txt` | Explicit packages (`pacman -Qqe`) — repo + AUR, fed to `yay` |
 | `packages/aur.txt` | Foreign/AUR packages (`pacman -Qqm`) — reference/audit list |
 | `setup/` | Extra one-time setup scripts (root system setup, Chromium profiles) |
@@ -130,7 +131,8 @@ uwsm start hyprland
 
 Two strategies, chosen per app by whether the app rewrites its own config file:
 
-- **LINKED** (`hypr`, `ghostty`, `waybar`, `rofi`, `nvim`, `tmux`, `yazi`, `swaync`, `zathura`, `wlogout`, `systemd`, plus `.zshrc`, `.p10k.zsh`, `.gitconfig`) — `~/.config/<x>` is a **symlink into this repo**, so hand-edits auto-track. **Edit in place, then `git commit`.**
+- **LINKED** (`hypr`, `ghostty`, `waybar`, `rofi`, `nvim`, `tmux`, `yazi`, `swaync`, `zathura`, `wlogout`, `systemd`, Claude Code commands/settings, plus `.zshrc`, `.p10k.zsh`, `.gitconfig`) — `~/.config/<x>` is a **symlink into this repo**, so hand-edits auto-track. **Edit in place, then `git commit`.**
+  > If Claude Code's `/config` UI ever replaces `~/.claude/settings.json` with a plain file (detaching the symlink), re-run `./install.sh links` and `git diff` to reconcile.
 - **COPIED** (`gtk-3.0`, `gtk-4.0`, `nwg-look`, `xsettingsd`, `btop`, `mimeapps.list`, `dolphinrc`, `kdeglobals`, `pavucontrol.ini`) — these apps rewrite the file via temp-file+rename, which would detach a symlink, so they're tracked as **copies**. After changing one in its app, run `./install.sh sync` to pull the live version back into the repo before committing.
 
 > **tmux plugins** live under `~/.config/tmux/plugins/` and are **gitignored** — TPM re-fetches them via `./install.sh tmux` (or `prefix + I` = `Ctrl-a I` inside tmux). They're never committed.
