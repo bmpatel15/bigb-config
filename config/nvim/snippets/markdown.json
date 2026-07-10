@@ -46,5 +46,10 @@
     "prefix": "lnk",
     "body": "[${1:text}](${2:url})$0",
     "description": "Markdown link"
+  },
+  "QC marker": {
+    "prefix": "qc",
+    "body": "@${1|satsang,satsang-diksha,vachanamrut,swamini-vato,coursera,sql,python,ai-engineering,evals,rag,idea,business,hermes,argus,av|}$0",
+    "description": "QC capture topic marker — pick a known marker, or add more after it (@a @b)"
   }
 }
