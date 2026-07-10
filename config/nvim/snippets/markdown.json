@@ -19,10 +19,10 @@
   "Callout": {
     "prefix": "call",
     "body": [
-      "> [!${1:note}] ${2:Title}",
+      "> [!${1|note,tip,info,warning,question,quote,example,todo,success,failure,danger,bug,abstract|}] ${2:Title}",
       "> $0"
     ],
-    "description": "Obsidian callout (note, tip, warning, info, quote...)"
+    "description": "Obsidian callout — pick the type from the menu"
   },
   "Code block": {
     "prefix": "cb",
