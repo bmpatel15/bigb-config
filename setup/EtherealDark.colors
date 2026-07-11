@@ -1,12 +1,3 @@
-[General]
-ColorScheme=EtherealDark
-
-[KDE]
-widgetStyle=Breeze
-
-[Icons]
-Theme=Ethereal-Papirus
-
 [ColorEffects:Disabled]
 Color=11,18,46
 ColorAmount=0
@@ -124,6 +115,14 @@ ForegroundNeutral=233,187,79
 ForegroundPositive=146,165,147
 DecorationFocus=125,130,217
 DecorationHover=125,130,217
+
+[General]
+ColorScheme=EtherealDark
+Name=EtherealDark
+shadeSortColumn=true
+
+[KDE]
+contrast=4
 
 [WM]
 activeBackground=11,18,46

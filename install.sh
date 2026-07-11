@@ -23,7 +23,7 @@ DOTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .zprofile .p10k.zsh .gitconfig)
-LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf fastfetch)
+LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf fastfetch uwsm)
 LINK_BIN=(obsidian-capture obsidian-capture-popup qc-process ly-status)
 COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
 
@@ -92,6 +92,11 @@ sync_copies() {
             cp -a "$HOME/.config/$d" "$DOTS/config/"; info "pulled: $d"
         fi
     done
+}
+
+setup_ethereal_kde() {
+    log "Ethereal KDE theming (Dolphin icons + color scheme)"
+    bash "$DOTS/setup/ethereal-kde.sh"
 }
 
 sync_packages() {
@@ -189,7 +194,7 @@ main() {
         sync-packages) sync_packages ;;
         hermes)  install_hermes ;;
         argus)   setup_argus ;;
-        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; enable_timers
+        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_ethereal_kde; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; enable_timers
                  log "Done"
                  cat <<'EOF'
 

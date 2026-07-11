@@ -1,0 +1,6 @@
+# Session environment sourced by uwsm before Hyprland starts.
+# Qt/KDE theming outside Plasma: activate Qt's built-in KDE platform theme so
+# KDE apps (Dolphin) build their palette/icons from ~/.config/kdeglobals.
+# KDE_SESSION_VERSION is required — Qt ignores QT_QPA_PLATFORMTHEME=kde without it.
+export QT_QPA_PLATFORMTHEME=kde
+export KDE_SESSION_VERSION=6
