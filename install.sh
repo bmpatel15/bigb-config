@@ -9,6 +9,7 @@
 #   ./install.sh sync     pull live app-managed configs from ~ -> repo (before commit)
 #   ./install.sh sync-packages  regenerate packages/{pacman,aur}.txt from installed packages
 #   ./install.sh ethereal rebuild the Ethereal-Papirus icons + KDE color scheme (setup/ethereal-kde.sh)
+#   ./install.sh blueman  disable blueman's tray icon (waybar's bluetooth module replaces it)
 #   ./install.sh hermes   install the Hermes agent (needed by qc-process)
 #   ./install.sh argus    clone the argus repo + link ~/.local/bin/argus
 #
@@ -98,6 +99,16 @@ sync_copies() {
 setup_ethereal_kde() {
     log "Ethereal KDE theming (Dolphin icons + color scheme)"
     bash "$DOTS/setup/ethereal-kde.sh"
+}
+
+setup_blueman() {
+    log "Blueman: no tray icon (waybar's bluetooth module replaces it)"
+    # ShowConnected must be disabled too: it depends on StatusIcon, and blueman
+    # force-loads dependencies even when they are on the '!' disable list.
+    gsettings set org.blueman.general plugin-list \
+        "['!ShowConnected', '!StatusIcon', '!StatusNotifierItem']" 2>/dev/null \
+        && info "disabled applet plugins: ShowConnected, StatusIcon, StatusNotifierItem" \
+        || info "gsettings failed (no session bus?) — re-run: ./install.sh blueman"
 }
 
 sync_packages() {
@@ -194,9 +205,10 @@ main() {
         sync)    sync_copies ;;
         sync-packages) sync_packages ;;
         ethereal) setup_ethereal_kde ;;
+        blueman) setup_blueman ;;
         hermes)  install_hermes ;;
         argus)   setup_argus ;;
-        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_ethereal_kde; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; enable_timers
+        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_ethereal_kde; setup_blueman; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; enable_timers
                  log "Done"
                  cat <<'EOF'
 
@@ -215,7 +227,7 @@ main() {
         theming env (config/uwsm/env — needed for Dolphin) take effect.
 EOF
                  ;;
-        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|ethereal|hermes|argus]" >&2; exit 1 ;;
+        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|ethereal|blueman|hermes|argus]" >&2; exit 1 ;;
     esac
 }
 main "$@"

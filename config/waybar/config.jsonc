@@ -123,12 +123,6 @@
     "format-icons": ["", "", ""]
   },
 
-  // "power-profiles-daemon": {
-  //   "format": "{icon}",
-  //   "tooltip-format": "Power profile: {profile}",
-  //   "format-icons": { "default": "", "performance": "", "balanced": "", "power-saver": "" }
-  // },
-
   "network": {
     "format-wifi": "{icon}",
     "format-icons": ["󰤟", "󰤢", "󰤥", "󰤨"],
@@ -195,6 +189,8 @@
     "tooltip-format": "{timeTo} ({power}W)"
   },
 
+  // blueman's tray icon is disabled via gsettings (./install.sh blueman) so it
+  // doesn't duplicate the bluetooth module above.
   "tray": {
     "icon-size": 16,
     "spacing": 8

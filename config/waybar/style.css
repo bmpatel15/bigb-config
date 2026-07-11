@@ -64,6 +64,8 @@ window#waybar {
 #bluetooth:hover,
 #pulseaudio:hover,
 #backlight:hover,
+#custom-updates:hover,
+#power-profiles-daemon:hover,
 #custom-power:hover {
   background: rgba(255, 255, 255, 0.07);
 }
