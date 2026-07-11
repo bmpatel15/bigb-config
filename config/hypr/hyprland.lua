@@ -449,4 +449,5 @@ hl.window_rule({
 	float = true,
 	size = "monitor_w*0.5 monitor_h*0.65",
 	center = true,
+	animation = "slide left", -- slide in from the left edge (also slides out left on close)
 })
