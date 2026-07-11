@@ -3,7 +3,12 @@
 # "console output during initialization" warning. Guarded to interactive,
 # top-level shells so it doesn't fire in scripts or nested `zsh` subshells.
 if [[ -o interactive && $SHLVL -eq 1 ]] && command -v fastfetch &>/dev/null; then
-  fastfetch
+  # close-boxes.awk auto-fits each info box and draws its right wall, capped
+  # to $COLUMNS so it never wraps. Drop the logo when the pane (e.g. a tiled
+  # half) is too narrow to fit logo + boxes, so the boxes still fit on their own.
+  ff_logo=(); (( COLUMNS < 90 )) && ff_logo=(--logo none)
+  fastfetch $ff_logo | LC_ALL=C.UTF-8 gawk -v cols=$COLUMNS -f ~/.config/fastfetch/close-boxes.awk
+  unset ff_logo
 fi
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
