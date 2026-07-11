@@ -85,9 +85,11 @@ install -Dm644 "$DOTS/setup/EtherealDark.colors" "$HOME/.local/share/color-schem
 info "EtherealDark.colors installed"
 
 # --- places sidebar (seed only — KDE mutates this file at runtime) ----------
+mkdir -p "$HOME/Desktop" "$HOME/Downloads" "$HOME/Projects" # sidebar targets
 PLACES="$HOME/.local/share/user-places.xbel"
 if [[ ! -e "$PLACES" || "$FORCE" == "--force" ]]; then
-    install -Dm644 "$DOTS/setup/user-places.xbel.seed" "$PLACES"
+    mkdir -p "$(dirname "$PLACES")"
+    sed "s|file:///home/bmpatel15|file://$HOME|g" "$DOTS/setup/user-places.xbel.seed" > "$PLACES"
     info "user-places.xbel seeded"
 else
     info "user-places.xbel exists, left alone (--force to overwrite)"

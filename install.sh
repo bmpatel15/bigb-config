@@ -2,12 +2,13 @@
 # bigb-config — Arch Linux + Hyprland setup bootstrap.
 #
 # Idempotent; safe to re-run. Subcommands:
-#   ./install.sh          full setup: packages -> links -> tmux -> shell -> font -> claude -> hermes -> argus -> timers
+#   ./install.sh          full setup: packages -> links -> tmux -> copies -> kde theming -> shell -> font -> claude -> hermes -> argus -> timers
 #   ./install.sh links    only (re)create the hand-edited config symlinks
 #   ./install.sh tmux     clone TPM + install tmux plugins (needs the tmux symlink)
 #   ./install.sh restore  copy app-managed configs from repo -> ~ (fresh machine)
 #   ./install.sh sync     pull live app-managed configs from ~ -> repo (before commit)
 #   ./install.sh sync-packages  regenerate packages/{pacman,aur}.txt from installed packages
+#   ./install.sh ethereal rebuild the Ethereal-Papirus icons + KDE color scheme (setup/ethereal-kde.sh)
 #   ./install.sh hermes   install the Hermes agent (needed by qc-process)
 #   ./install.sh argus    clone the argus repo + link ~/.local/bin/argus
 #
@@ -192,6 +193,7 @@ main() {
         restore) restore_copies ;;
         sync)    sync_copies ;;
         sync-packages) sync_packages ;;
+        ethereal) setup_ethereal_kde ;;
         hermes)  install_hermes ;;
         argus)   setup_argus ;;
         all)     install_packages; link_configs; setup_tmux; restore_copies; setup_ethereal_kde; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; enable_timers
@@ -209,10 +211,11 @@ main() {
       * Run `hermes` once to configure its API keys (qc-process depends on it).
       * Create ~/.config/argus/api_key (argus API key; never committed).
       * Set up snapper (see README) for btrfs snapshot rollback.
-      * Log out/in so the zsh login shell + Hyprland session take effect.
+      * Log out/in so the zsh login shell, Hyprland session, and the Qt/KDE
+        theming env (config/uwsm/env — needed for Dolphin) take effect.
 EOF
                  ;;
-        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|hermes|argus]" >&2; exit 1 ;;
+        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|ethereal|hermes|argus]" >&2; exit 1 ;;
     esac
 }
 main "$@"

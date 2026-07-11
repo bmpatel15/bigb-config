@@ -14,6 +14,7 @@ One script (`install.sh`) turns a **plain Arch base install** into this full des
 - **Ghostty** terminal + **zsh** (oh-my-zsh + powerlevel10k + fzf-tab/autosuggestions/syntax-highlighting).
 - **Neovim** (LazyVim, Ethereal colorscheme), **tmux** (Ethereal, TPM plugins), **yazi** file manager.
 - **PipeWire** audio, **NetworkManager**, `xdg-desktop-portal-hyprland`, grim/slurp screenshots, Bibata cursor, **Chromium** (with per-mode profiles + Ethereal theme).
+- **Dolphin** file manager, fully Ethereal-themed: `EtherealDark` KDE color scheme, **Ethereal-Papirus** icons (Papirus folders recolored to the accent), Breeze widgets, and a minimal Places sidebar (Desktop / Downloads / Projects / Config / Trash).
 - **Claude Code** CLI, and `system-maintenance` + `qc-process` user timers.
 
 ---
@@ -75,12 +76,13 @@ It runs these phases in order (the `all` target):
 | 2 | **Links** | Symlinks the **LINKED** configs into `~` and `~/.config`. Any file already there is moved to `~/.bigb-config-backup-<timestamp>/` first, never overwritten. |
 | 3 | **tmux** | Clones [TPM](https://github.com/tmux-plugins/tpm) into `~/.config/tmux/plugins/` and installs the tmux plugins headlessly. |
 | 4 | **Copies** | Copies the **COPIED** configs into `~/.config` (skips any that already exist, so it won't clobber live edits). |
-| 5 | **Shell** | Installs oh-my-zsh + powerlevel10k + zsh plugins, and sets your login shell to `zsh`. |
-| 6 | **Font** | Installs **JetBrainsMono Nerd Font**. |
-| 7 | **Claude Code** | Installs the `claude` CLI. |
-| 8 | **Hermes** | Installs the [Hermes agent](https://github.com/NousResearch/hermes-agent) (official installer) — the AI CLI that `qc-process` uses for the nightly QC pass. |
-| 9 | **Argus** | Clones the private `argus` repo to `~/Projects/argus` and links `~/.local/bin/argus` (skips gracefully until SSH keys are set up). |
-| 10 | **Timers** | Enables the `system-maintenance` and `qc-process` user systemd timers. |
+| 5 | **KDE theming** | Runs `setup/ethereal-kde.sh`: builds the **Ethereal-Papirus** icon theme into `~/.local/share/icons`, installs the `EtherealDark` color scheme, and seeds Dolphin's Places sidebar (only if absent). Takes effect after login thanks to `config/uwsm/env` (`QT_QPA_PLATFORMTHEME=kde` + `KDE_SESSION_VERSION=6`). |
+| 6 | **Shell** | Installs oh-my-zsh + powerlevel10k + zsh plugins, and sets your login shell to `zsh`. |
+| 7 | **Font** | Installs **JetBrainsMono Nerd Font**. |
+| 8 | **Claude Code** | Installs the `claude` CLI. |
+| 9 | **Hermes** | Installs the [Hermes agent](https://github.com/NousResearch/hermes-agent) (official installer) — the AI CLI that `qc-process` uses for the nightly QC pass. |
+| 10 | **Argus** | Clones the private `argus` repo to `~/Projects/argus` and links `~/.local/bin/argus` (skips gracefully until SSH keys are set up). |
+| 11 | **Timers** | Enables the `system-maintenance` and `qc-process` user systemd timers. |
 
 When it finishes, it prints the remaining manual steps (below).
 
@@ -130,7 +132,7 @@ ly-status        # read-only diagnostic (services, autologin arming, config sani
 | `packages/aur.txt` | Foreign/AUR packages (`pacman -Qqm`) — reference/audit list |
 | `bin/` | User scripts, LINKED into `~/.local/bin` (quick-capture, `qc-process`, `ly-status`) |
 | `docs/` | Machine docs (Ly display-manager / autologin setup) |
-| `setup/` | Extra one-time setup scripts (root system setup, Chromium profiles) |
+| `setup/` | Extra one-time setup scripts (root system setup, Chromium profiles, `ethereal-kde.sh` + its `EtherealDark.colors` / `user-places.xbel.seed` assets) |
 | `config/systemd/user/` | User systemd units (`system-maintenance`, `qc-process` timers) |
 
 ---
@@ -156,6 +158,7 @@ Two strategies, chosen per app by whether the app rewrites its own config file:
 ./install.sh restore        # copy COPIED configs from repo -> ~ (fresh machine)
 ./install.sh sync           # pull live COPIED configs from ~ -> repo (before a commit)
 ./install.sh sync-packages  # regenerate packages/{pacman,aur}.txt from installed packages
+./install.sh ethereal       # rebuild Ethereal-Papirus icons + EtherealDark color scheme
 ./install.sh hermes         # install the Hermes agent (needed by qc-process)
 ./install.sh argus          # clone the argus repo + link ~/.local/bin/argus
 ```
@@ -169,6 +172,7 @@ Two strategies, chosen per app by whether the app rewrites its own config file:
 | Edited a LINKED config (hypr, nvim, tmux, `.zshrc`, …) | nothing — it's a symlink, already tracked. Just `git commit` |
 | Changed a COPIED app's settings (GTK, KDE, btop) | `./install.sh sync` |
 | Installed or removed packages | `./install.sh sync-packages` |
+| `papirus-icon-theme` got a major update | `./install.sh ethereal` (rebuilds the recolored copies) |
 | Want fresh tmux plugins | `./install.sh tmux` (or `Ctrl-a I` in tmux) |
 
 ```sh
