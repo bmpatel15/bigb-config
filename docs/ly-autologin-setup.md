@@ -3,6 +3,12 @@
 Machine: `jarvis` (Arch Linux, Hyprland, LUKS FDE) · User: `bmpatel15`
 Migrated: 2026-07-07 · Backup: `~/.local/state/ly-migration-backup/20260707-180139/`
 
+> **Reproducible now:** these `/etc`-side settings are root-owned and live outside
+> the git-tracked dotfiles, so a machine reprovision resets them to package
+> defaults (`install.sh`'s symlinks don't touch `/etc`). Reapply with
+> `./install.sh ly` (→ `setup/ly-setup.sh`, idempotent). This document remains the
+> rationale/reference; the script is the source of truth for the exact values.
+
 ## Architecture
 
 ```text

@@ -9,6 +9,7 @@
 #   ./install.sh sync     pull live app-managed configs from ~ -> repo (before commit)
 #   ./install.sh sync-packages  regenerate packages/{pacman,aur}.txt from installed packages
 #   ./install.sh ethereal rebuild the Ethereal-Papirus icons + KDE color scheme (setup/ethereal-kde.sh)
+#   ./install.sh ly       ly display manager: boot autologin + Ethereal greeter (sudo; setup/ly-setup.sh)
 #   ./install.sh blueman  disable blueman's tray icon (waybar's bluetooth module replaces it)
 #   ./install.sh hermes   install the Hermes agent (needed by qc-process)
 #   ./install.sh argus    clone the argus repo + link ~/.local/bin/argus
@@ -99,6 +100,11 @@ sync_copies() {
 setup_ethereal_kde() {
     log "Ethereal KDE theming (Dolphin icons + color scheme)"
     bash "$DOTS/setup/ethereal-kde.sh"
+}
+
+setup_ly() { # ly display manager: boot autologin + Ethereal greeter (root-level /etc pass)
+    log "Ly display manager (boot autologin + Ethereal greeter)"
+    sudo bash "$DOTS/setup/ly-setup.sh"
 }
 
 setup_blueman() {
@@ -205,6 +211,7 @@ main() {
         sync)    sync_copies ;;
         sync-packages) sync_packages ;;
         ethereal) setup_ethereal_kde ;;
+        ly)      setup_ly ;;
         blueman) setup_blueman ;;
         hermes)  install_hermes ;;
         argus)   setup_argus ;;
@@ -222,12 +229,14 @@ main() {
           git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM
       * Run `hermes` once to configure its API keys (qc-process depends on it).
       * Create ~/.config/argus/api_key (argus API key; never committed).
+      * Set up ly (boot autologin + Ethereal greeter):  ./install.sh ly
+        (root-level /etc pass — not in the automated flow; see docs/ly-autologin-setup.md)
       * Set up snapper (see README) for btrfs snapshot rollback.
       * Log out/in so the zsh login shell, Hyprland session, and the Qt/KDE
         theming env (config/uwsm/env — needed for Dolphin) take effect.
 EOF
                  ;;
-        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|ethereal|blueman|hermes|argus]" >&2; exit 1 ;;
+        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|ethereal|ly|blueman|hermes|argus]" >&2; exit 1 ;;
     esac
 }
 main "$@"
