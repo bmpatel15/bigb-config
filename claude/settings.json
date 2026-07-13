@@ -1,7 +1,8 @@
 {
-  "model": "claude-fable-5[1m]",
+  "model": "opus[1m]",
   "enabledPlugins": {
-    "pyright-lsp@claude-plugins-official": true
+    "pyright-lsp@claude-plugins-official": true,
+    "vercel@claude-plugins-official": true
   },
   "effortLevel": "xhigh",
   "theme": "dark"
