@@ -11,6 +11,16 @@ if [[ -o interactive && $SHLVL -eq 1 ]] && command -v fastfetch &>/dev/null; the
   unset ff_logo
 fi
 
+# ── PKM daily greeter (once/day, first non-tmux interactive shell) ───────
+# Kept ABOVE the p10k instant-prompt block: it prints a banner and may open
+# nvim (console I/O / input), which trips p10k's "console output during
+# initialization" warning if run below the preamble. Uses the explicit path
+# because ~/.local/bin isn't on PATH yet this early. Disable auto-open with
+# PKM_AUTOOPEN=0.
+if [[ -o interactive && -z "${TMUX:-}" && -x "$HOME/.local/bin/pkm-daily" ]]; then
+  "$HOME/.local/bin/pkm-daily" || true
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -205,9 +215,3 @@ y() {
   rm -f -- "$tmp"
 }
 alias yazi='y'
-
-# ── PKM daily greeter (once/day, first non-tmux interactive shell) ───────
-# Opens today's note & shows the next action. Disable auto-open: PKM_AUTOOPEN=0
-if [[ -o interactive && -z "${TMUX:-}" ]] && command -v pkm-daily >/dev/null; then
-  pkm-daily || true
-fi
