@@ -160,6 +160,7 @@ alias home='cd ~'
 alias config='cd ~/.config'
 alias dot='cd ~/bigb-config/'
 alias ov='cd ~/Documents/BigB-PKM/ && nvim'
+alias bigb='cd ~/Documents/BigB-PKM/'
 alias reload='exec zsh'
 # modern replacements (only if installed)
 if command -v eza >/dev/null; then
@@ -202,6 +203,17 @@ alias ow='nvim "$(week-note)"'                   # open this week's review
 os() { nvim "$(sn "$@")"; }                      # os v|sv|jc "ref": open a scripture note
 morning() { (builtin cd "$PKM" && claude "/morning"); }     # start the day (Claude Code /morning)
 evening() { (builtin cd "$PKM" && claude "/end-of-day"); }  # close the day (Claude Code /end-of-day)
+
+# ── Vault sync (two-machine workflow: vpull at start, vpush at end) ──────
+vst()   { git -C "$PKM" status -sb; }                       # vault status from anywhere
+vpull() { git -C "$PKM" pull --rebase --autostash; }        # pull latest (stashes local edits, re-applies)
+vpush() {                                                    # commit all + push; optional msg: vpush "reorg"
+  git -C "$PKM" add -A
+  if git -C "$PKM" diff --cached --quiet; then
+    echo "vault: nothing to commit"; return 0
+  fi
+  git -C "$PKM" commit -m "vault sync: ${1:-$(date '+%Y-%m-%d %H:%M')}" && git -C "$PKM" push
+}
 
 # ── Yazi ───────────────────────────────────────────────────────────────
 # quitting with `q` drops the shell into yazi's last directory (Q quits without cd)
