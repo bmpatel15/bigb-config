@@ -190,6 +190,8 @@ alias od='nvim "$(today-note)"'                  # open today's daily (creates i
 alias or='nvim "$PKM/02 - Fleeting Notes/"*.md'  # open all fleeting notes
 alias ow='nvim "$(week-note)"'                   # open this week's review
 os() { nvim "$(sn "$@")"; }                      # os v|sv|jc "ref": open a scripture note
+morning() { (builtin cd "$PKM" && claude "/morning"); }     # start the day (Claude Code /morning)
+evening() { (builtin cd "$PKM" && claude "/end-of-day"); }  # close the day (Claude Code /end-of-day)
 
 # ── Yazi ───────────────────────────────────────────────────────────────
 # quitting with `q` drops the shell into yazi's last directory (Q quits without cd)
@@ -203,3 +205,9 @@ y() {
   rm -f -- "$tmp"
 }
 alias yazi='y'
+
+# ── PKM daily greeter (once/day, first non-tmux interactive shell) ───────
+# Opens today's note & shows the next action. Disable auto-open: PKM_AUTOOPEN=0
+if [[ -o interactive && -z "${TMUX:-}" ]] && command -v pkm-daily >/dev/null; then
+  pkm-daily || true
+fi

@@ -13,6 +13,7 @@
 #   ./install.sh blueman  disable blueman's tray icon (waybar's bluetooth module replaces it)
 #   ./install.sh hermes   install the Hermes agent (needed by qc-process)
 #   ./install.sh argus    clone the argus repo + link ~/.local/bin/argus
+#   ./install.sh pkm      link the PKM note-processing commands + daily-routine greeter; check deps + vault
 #
 # Two tracking strategies (see arrays below):
 #   LINKED  — configs WE hand-edit; ~/.config/<x> is a symlink into this repo,
@@ -28,6 +29,8 @@ BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 LINK_HOME=(.zshrc .zprofile .p10k.zsh .gitconfig)
 LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf fastfetch uwsm)
 LINK_BIN=(obsidian-capture obsidian-capture-popup qc-process ly-status)
+# PKM note-processing commands + daily-routine greeter (vault: ~/Documents/BigB-PKM).
+LINK_BIN_PKM=(today-note ot rollover on og sn tasks week-note obs pkm-daily)
 COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
 
 log()  { printf '\n\033[1;34m==>\033[0m \033[1m%s\033[0m\n' "$*"; }
@@ -50,7 +53,7 @@ link_configs() {
     mkdir -p "$HOME/.config"
     for d in "${LINK_CONFIG[@]}"; do [[ -e "$DOTS/config/$d" ]] && link "$DOTS/config/$d" "$HOME/.config/$d"; done
     mkdir -p "$HOME/.local/bin"
-    for b in "${LINK_BIN[@]}";    do [[ -e "$DOTS/bin/$b"    ]] && link "$DOTS/bin/$b"    "$HOME/.local/bin/$b"; done
+    for b in "${LINK_BIN[@]}" "${LINK_BIN_PKM[@]}"; do [[ -e "$DOTS/bin/$b" ]] && link "$DOTS/bin/$b" "$HOME/.local/bin/$b"; done
     # Claude Code: slash commands + settings (secrets/state stay in ~/.claude, untracked)
     mkdir -p "$HOME/.claude"
     link "$DOTS/claude/commands"       "$HOME/.claude/commands"
@@ -196,6 +199,35 @@ setup_argus() { # research agent; its state lives in the vault (~/Documents/BigB
     [[ -f "$HOME/.config/argus/api_key" ]] || info "reminder: create ~/.config/argus/api_key (not tracked in git)"
 }
 
+setup_pkm() { # PKM note-processing commands + daily-routine greeter (vault: ~/Documents/BigB-PKM)
+    log "PKM vault tooling (note-processing commands + daily routines)"
+    mkdir -p "$HOME/.local/bin"
+    for b in "${LINK_BIN_PKM[@]}"; do [[ -e "$DOTS/bin/$b" ]] && link "$DOTS/bin/$b" "$HOME/.local/bin/$b"; done
+    # /morning + /end-of-day ride along with the whole-dir commands symlink (link_configs).
+    [[ -L "$HOME/.claude/commands" ]] || { mkdir -p "$HOME/.claude"; link "$DOTS/claude/commands" "$HOME/.claude/commands"; }
+
+    local miss=()
+    for c in rg nvim perl tmux git; do command -v "$c" >/dev/null || miss+=("$c"); done
+    ((${#miss[@]})) && info "missing runtime deps: ${miss[*]} — sudo pacman -S --needed ripgrep neovim perl tmux git"
+    command -v claude >/dev/null || info "claude not installed — the full ./install.sh installs it"
+
+    if [[ -d "$HOME/Documents/BigB-PKM" ]]; then
+        info "ok: vault at ~/Documents/BigB-PKM"
+    else
+        info "vault not found — clone it:  git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM"
+    fi
+
+    cat <<'EOF'
+
+    PKM daily workflow ready. Open a new terminal (or `exec zsh`), then:
+      morning        start the day  (note + rollover + Main 3, via Claude Code /morning)
+      ot "task"      add a task to today   ·   SUPER+SHIFT+O   quick-capture a thought
+      tasks          list every open task  ·   od / ow / os    open today / week / scripture
+      evening        close the day  (rating + Win/Struggle/Lesson + tomorrow, via /end-of-day)
+    Reference:  ~/Documents/BigB-PKM/06 - Command Center/Daily Workflow.md
+EOF
+}
+
 enable_timers() {
     log "User systemd timers"
     systemctl --user daemon-reload
@@ -215,7 +247,8 @@ main() {
         blueman) setup_blueman ;;
         hermes)  install_hermes ;;
         argus)   setup_argus ;;
-        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_ethereal_kde; setup_blueman; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; enable_timers
+        pkm)     setup_pkm ;;
+        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_ethereal_kde; setup_blueman; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; setup_pkm; enable_timers
                  log "Done"
                  cat <<'EOF'
 
@@ -236,7 +269,7 @@ main() {
         theming env (config/uwsm/env — needed for Dolphin) take effect.
 EOF
                  ;;
-        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|ethereal|ly|blueman|hermes|argus]" >&2; exit 1 ;;
+        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|ethereal|ly|blueman|hermes|argus|pkm]" >&2; exit 1 ;;
     esac
 }
 main "$@"

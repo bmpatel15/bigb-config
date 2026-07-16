@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# pkm-daily: the once-a-day "start" cue for the BigB-PKM workflow. Meant to be
+# called from the end of an interactive .zshrc. Ensures today's daily note
+# exists, prints a short glanceable greeting with the carried-over task count
+# and the single next action, and — in the morning, unless PKM_AUTOOPEN=0 —
+# opens the note so you land straight in it.
+#
+# It greets at most once per calendar day (a stamp file gates it), so only the
+# first shell of the day triggers anything; every later terminal is silent.
+#   pkm-daily            run the once-a-day greeting (no-op if already greeted)
+#   pkm-daily --force    greet now regardless of the stamp (for testing)
+set -euo pipefail
+
+VAULT="${PKM:-$HOME/Documents/BigB-PKM}"
+SELF_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/pkm"
+STAMP="$STATE/last-greet"
+
+TODAY="$(date +%F)"
+FORCE=0
+[[ "${1:-}" == "--force" ]] && FORCE=1
+
+# Once per day, unless forced.
+if ((!FORCE)) && [[ -f "$STAMP" && "$(cat "$STAMP" 2>/dev/null)" == "$TODAY" ]]; then
+	exit 0
+fi
+
+mkdir -p "$STATE"
+note="$("$SELF_DIR/today-note")" # never a blank-page start
+printf '%s' "$TODAY" >"$STAMP"
+
+# Best-effort open-task count (same exclusions as `tasks`).
+opentasks="$(rg -c --no-filename '^\s*- \[ \]\s+\S' "$VAULT" \
+	--glob '*.md' --glob '!**/09 - Templates/**' \
+	--glob '!**/00 - Home/README.md' --glob '!**/ideas.md' 2>/dev/null |
+	awk '{s+=$1} END{print s+0}')" || opentasks=0
+
+hour="$(date +%H)"
+when="$(date '+%A, %d %b')"
+
+if [[ -t 1 ]]; then P=$'\e[38;5;216m'; B=$'\e[1m'; D=$'\e[2m'; R=$'\e[0m'; else P=; B=; D=; R=; fi
+
+echo
+if ((10#$hour < 17)); then
+	printf '  %s☀  Good morning%s   %s%s%s\n' "$P" "$R" "$D" "$when" "$R"
+	printf '      today'\''s note is ready  ·  %s%s open task(s)%s in play\n' "$B" "$opentasks" "$R"
+	printf '      %s▶%s  run  %smorning%s  to set your Main 3\n' "$P" "$R" "$B" "$R"
+else
+	printf '  %s🌙  Evening%s   %s%s%s\n' "$P" "$R" "$D" "$when" "$R"
+	printf '      %s%s open task(s)%s today\n' "$B" "$opentasks" "$R"
+	printf '      %s▶%s  run  %sevening%s  to close out & set up tomorrow\n' "$P" "$R" "$B" "$R"
+fi
+echo
+
+# Morning auto-open (your pick). Opt out any time with:  export PKM_AUTOOPEN=0
+if [[ "${PKM_AUTOOPEN:-1}" == "1" ]] && ((10#$hour < 17)) && [[ -t 1 && -t 0 ]]; then
+	"${EDITOR:-nvim}" "$note"
+fi

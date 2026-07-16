@@ -161,7 +161,19 @@ Two strategies, chosen per app by whether the app rewrites its own config file:
 ./install.sh ethereal       # rebuild Ethereal-Papirus icons + EtherealDark color scheme
 ./install.sh hermes         # install the Hermes agent (needed by qc-process)
 ./install.sh argus          # clone the argus repo + link ~/.local/bin/argus
+./install.sh pkm            # link the PKM note-processing commands + daily-routine greeter (+ deps/vault check)
 ```
+
+**Duplicate the PKM tooling on another machine** — pull this repo, then:
+
+```sh
+cd ~/bigb-config && git pull
+./install.sh pkm            # links today-note/ot/rollover/og/sn/tasks/week-note/obs + the greeter
+git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM   # only if the vault isn't there yet
+exec zsh                    # loads the PKM aliases (oo/od/ow/os/morning/evening) + the daily greeter
+```
+
+The `/morning` and `/end-of-day` Claude Code commands come along automatically (the `~/.claude/commands` symlink). The daily rhythm itself is documented in the vault: `06 - Command Center/Daily Workflow.md`.
 
 ---
 
