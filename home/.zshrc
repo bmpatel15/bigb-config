@@ -183,6 +183,14 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 
+# ── PKM (BigB-PKM vault tooling; scripts in ~/bigb-config/bin) ───────────
+export PKM="$HOME/Documents/BigB-PKM"
+alias oo='cd "$PKM"'                             # cd into the vault
+alias od='nvim "$(today-note)"'                  # open today's daily (creates it first)
+alias or='nvim "$PKM/02 - Fleeting Notes/"*.md'  # open all fleeting notes
+alias ow='nvim "$(week-note)"'                   # open this week's review
+os() { nvim "$(sn "$@")"; }                      # os v|sv|jc "ref": open a scripture note
+
 # ── Yazi ───────────────────────────────────────────────────────────────
 # quitting with `q` drops the shell into yazi's last directory (Q quits without cd)
 y() {

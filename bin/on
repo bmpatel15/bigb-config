@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# on "Title": create a new fleeting note in 02 - Fleeting Notes with inbox
+# frontmatter, then open it in the editor. If a note with that title already
+# exists, open it instead of overwriting.
+set -euo pipefail
+
+VAULT="${PKM:-$HOME/Documents/BigB-PKM}"
+DIR="$VAULT/02 - Fleeting Notes"
+ED="${EDITOR:-nvim}"
+
+if [[ $# -eq 0 ]]; then
+	echo "usage: on <title>" >&2
+	exit 1
+fi
+TITLE="$*"
+FILE="$DIR/$TITLE.md"
+
+if [[ ! -e "$FILE" ]]; then
+	mkdir -p "$DIR"
+	D="$(date +%F)"
+	cat >"$FILE" <<EOF
+---
+type: fleeting
+created: $D
+status: inbox
+tags:
+---
+
+# $TITLE
+
+EOF
+fi
+
+exec "$ED" "$FILE"

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# rollover: carry unfinished tasks from the most recent daily note (before today)
+# into today's ## Tasks. Each rolled task is appended to today via `ot`, and the
+# source line is rewritten to "- [-] <text> → [[<today>]]" so it isn't counted
+# twice. Re-running is a no-op. Only checkboxes with actual text roll forward;
+# empty "- [ ]" placeholders are left alone.
+set -euo pipefail
+
+VAULT="${PKM:-$HOME/Documents/BigB-PKM}"
+DIR="$VAULT/01 - Daily Notes"
+SELF_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
+
+TODAY="$(date +%F)"
+
+# Most recent daily note strictly before today (ISO filenames sort chronologically).
+PREV=""
+for f in "$DIR"/*.md; do
+	[[ -e "$f" ]] || continue
+	base="$(basename "$f" .md)"
+	[[ "$base" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || continue
+	[[ "$base" < "$TODAY" ]] || continue
+	if [[ -z "$PREV" || "$base" > "$PREV" ]]; then PREV="$base"; fi
+done
+
+if [[ -z "$PREV" ]]; then
+	echo "rollover: no earlier daily note found; nothing to roll over."
+	exit 0
+fi
+PREVFILE="$DIR/$PREV.md"
+
+# Open tasks that actually have text.
+mapfile -t OPEN < <(grep -nE '^[[:space:]]*- \[ \][[:space:]]+[^[:space:]]' "$PREVFILE" || true)
+if [[ ${#OPEN[@]} -eq 0 ]]; then
+	echo "rollover: no unfinished tasks in $PREV."
+	exit 0
+fi
+
+# Ensure today exists before appending.
+"$SELF_DIR/today-note" >/dev/null
+
+count=0
+for entry in "${OPEN[@]}"; do
+	text="$(sed -E 's/^[0-9]+:[[:space:]]*- \[ \][[:space:]]+//' <<<"$entry")"
+	"$SELF_DIR/ot" "$text"
+	count=$((count + 1))
+done
+
+# Mark the source lines done and point them at today.
+tmp="$(mktemp)"
+TODAY="$TODAY" awk '
+/^[[:space:]]*- \[ \][[:space:]]+[^[:space:]]/ {
+	match($0, /^[[:space:]]*/); indent = substr($0, 1, RLENGTH)
+	rest = substr($0, RLENGTH + 1)          # "- [ ] X"
+	sub(/^- \[ \][[:space:]]+/, "", rest)   # "X"
+	print indent "- [-] " rest " → [[" ENVIRON["TODAY"] "]]"
+	next
+}
+{ print }
+' "$PREVFILE" >"$tmp"
+cat "$tmp" >"$PREVFILE"
+rm -f "$tmp"
+
+echo "rollover: moved $count task(s) from $PREV → $TODAY."

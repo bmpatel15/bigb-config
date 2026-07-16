@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# week-note: create this week's review note (ISO YYYY-Www) from the Weekly
+# Review Template and print its path. Idempotent. Fills {{WEEK}}, {{MONDAY}},
+# {{date}}, and {{DAILY_LINKS}} (wikilinks to the 7 daily notes of the week,
+# missing days marked "(no note)").
+set -euo pipefail
+
+VAULT="${PKM:-$HOME/Documents/BigB-PKM}"
+TEMPLATE="$VAULT/09 - Templates/Weekly Review Template.md"
+DIR="$VAULT/05 - Weekly Reviews"
+DAILY="$VAULT/01 - Daily Notes"
+
+TODAY="$(date +%F)"
+WEEK="$(date -d "$TODAY" +%G-W%V)"
+FILE="$DIR/$WEEK.md"
+
+if [[ -e "$FILE" ]]; then
+	printf '%s\n' "$FILE"
+	exit 0
+fi
+
+[[ -e "$TEMPLATE" ]] || { echo "week-note: template not found: $TEMPLATE" >&2; exit 1; }
+
+dow="$(date -d "$TODAY" +%u)" # 1=Mon .. 7=Sun
+MONDAY="$(date -d "$TODAY -$((dow - 1)) days" +%F)"
+
+links=""
+for i in 0 1 2 3 4 5 6; do
+	d="$(date -d "$MONDAY +$i days" +%F)"
+	if [[ -e "$DAILY/$d.md" ]]; then
+		links+="- [[$d]]"$'\n'
+	else
+		links+="- $d (no note)"$'\n'
+	fi
+done
+links="${links%$'\n'}" # trim trailing newline
+
+mkdir -p "$DIR"
+WEEK="$WEEK" MONDAY="$MONDAY" DATE="$TODAY" LINKS="$links" perl -pe '
+	s/\{\{WEEK\}\}/$ENV{WEEK}/g;
+	s/\{\{MONDAY\}\}/$ENV{MONDAY}/g;
+	s/\{\{date\}\}/$ENV{DATE}/g;
+	s/\{\{DAILY_LINKS\}\}/$ENV{LINKS}/g;
+' "$TEMPLATE" >"$FILE"
+
+printf '%s\n' "$FILE"

@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# sn v|sv|jc "Reference": create a scripture note from the Scripture Note
+# Template, filed under its granth folder, and print the path. Idempotent.
+#   v  = Vachanamrut     sv = Swamini Vato     jc = Jivan Charitra
+# e.g. sn v "Gadhada I-21"
+#      -> 03 - Literature Notes/Vachanamrut/Vachanamrut Gadhada I-21.md
+set -euo pipefail
+
+VAULT="${PKM:-$HOME/Documents/BigB-PKM}"
+TEMPLATE="$VAULT/09 - Templates/Scripture Note Template.md"
+
+if [[ $# -lt 2 ]]; then
+	echo "usage: sn v|sv|jc <reference>" >&2
+	exit 1
+fi
+
+case "$1" in
+	v) GRANTH="Vachanamrut" ;;
+	sv) GRANTH="Swamini Vato" ;;
+	jc) GRANTH="Jivan Charitra" ;;
+	*) echo "sn: unknown granth '$1' (use v|sv|jc)" >&2; exit 1 ;;
+esac
+shift
+
+REF="$*"
+TITLE="$GRANTH $REF"
+DIR="$VAULT/03 - Literature Notes/$GRANTH"
+FILE="$DIR/$TITLE.md"
+
+if [[ -e "$FILE" ]]; then
+	printf '%s\n' "$FILE"
+	exit 0
+fi
+
+[[ -e "$TEMPLATE" ]] || { echo "sn: template not found: $TEMPLATE" >&2; exit 1; }
+
+mkdir -p "$DIR"
+D="$(date +%F)"
+D="$D" TITLE="$TITLE" GRANTH="$GRANTH" REF="$REF" perl -pe '
+	s/\{\{date\}\}/$ENV{D}/g;
+	s/\{\{title\}\}/$ENV{TITLE}/g;
+	s/^source:.*$/"source: $ENV{GRANTH}"/e;
+	s/^ref:.*$/"ref: $ENV{REF}"/e;
+' "$TEMPLATE" >"$FILE"
+
+printf '%s\n' "$FILE"

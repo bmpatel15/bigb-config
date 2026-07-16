@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# today-note: create today's daily note from the Daily Note Template and print
+# its path. Idempotent — if the note already exists, just print the path.
+# Renders the Templater token <% tp.date.now("YYYY-MM-DD") %> to today's date
+# (matching what Obsidian's Templater does), so the note is identical whether it
+# is created here or created first by opening Obsidian.
+set -euo pipefail
+
+VAULT="${PKM:-$HOME/Documents/BigB-PKM}"
+TEMPLATE="$VAULT/09 - Templates/Daily Note Template.md"
+DIR="$VAULT/01 - Daily Notes"
+
+D="$(date +%F)"
+FILE="$DIR/$D.md"
+
+if [[ -e "$FILE" ]]; then
+	printf '%s\n' "$FILE"
+	exit 0
+fi
+
+[[ -e "$TEMPLATE" ]] || { echo "today-note: template not found: $TEMPLATE" >&2; exit 1; }
+
+mkdir -p "$DIR"
+# Fixed-string replace of the Templater date token (it contains %, (), and
+# quotes, so \Q..\E fixed-string matching is safer than a sed regex).
+D="$D" perl -pe 's/\Q<% tp.date.now("YYYY-MM-DD") %>\E/$ENV{D}/g' "$TEMPLATE" >"$FILE"
+
+printf '%s\n' "$FILE"

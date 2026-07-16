@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# obs: create-or-attach the `pkm` tmux session. Window "notes" opens today's
+# daily note in nvim; window "shell" sits at the vault root.
+set -euo pipefail
+
+VAULT="${PKM:-$HOME/Documents/BigB-PKM}"
+SELF_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
+SESSION="pkm"
+
+if ! command -v tmux >/dev/null; then
+	echo "obs: tmux is required." >&2
+	exit 1
+fi
+
+TODAYFILE="$("$SELF_DIR/today-note")"
+
+if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+	tmux new-session -d -s "$SESSION" -n notes -c "$VAULT"
+	tmux send-keys -t "$SESSION:notes" "nvim '$TODAYFILE'" C-m
+	tmux new-window -t "$SESSION" -n shell -c "$VAULT"
+	tmux select-window -t "$SESSION:notes"
+fi
+
+if [[ -n "${TMUX:-}" ]]; then
+	exec tmux switch-client -t "$SESSION"
+else
+	exec tmux attach -t "$SESSION"
+fi

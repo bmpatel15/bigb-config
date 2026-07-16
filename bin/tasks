@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# tasks: list every open "- [ ] <text>" checkbox in the vault, grouped by note.
+# Excludes the templates folder, the README, and ideas.md (the Argus-generated
+# idea backlog, whose scaffolding checkboxes would otherwise swamp the list).
+# `tasks -e` loads the hits into an nvim quickfix list instead of printing them.
+set -euo pipefail
+
+VAULT="${PKM:-$HOME/Documents/BigB-PKM}"
+ED="${EDITOR:-nvim}"
+PATTERN='^\s*- \[ \]\s+\S'
+
+if ! command -v rg >/dev/null; then
+	echo "tasks: ripgrep (rg) is required." >&2
+	exit 1
+fi
+
+GLOBS=(--glob '*.md'
+	--glob '!**/09 - Templates/**'
+	--glob '!**/00 - Home/README.md'
+	--glob '!**/ideas.md')
+
+if [[ "${1:-}" == "-e" ]]; then
+	mapfile -t hits < <(rg --vimgrep "$PATTERN" "$VAULT" "${GLOBS[@]}" || true)
+	if [[ ${#hits[@]} -eq 0 ]]; then
+		echo "tasks: no open tasks."
+		exit 0
+	fi
+	qf="$(mktemp)"
+	printf '%s\n' "${hits[@]}" >"$qf"
+	exec "$ED" -q "$qf" +copen
+fi
+
+if ! rg --heading --line-number "$PATTERN" "$VAULT" "${GLOBS[@]}"; then
+	echo "tasks: no open tasks."
+fi

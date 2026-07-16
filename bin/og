@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# og: file inbox notes by their frontmatter `type`. Scans the vault root and
+# 02 - Fleeting Notes (top level only), reads each note's type, and moves it to
+# the matching folder: fleeting→02, literature→03, permanent→04, daily→01.
+# Notes with an unknown or missing type are skipped. Never overwrites a file
+# that already exists at the destination.
+set -euo pipefail
+
+VAULT="${PKM:-$HOME/Documents/BigB-PKM}"
+
+declare -A DEST=(
+	[fleeting]="02 - Fleeting Notes"
+	[literature]="03 - Literature Notes"
+	[permanent]="04 - Permanent Notes"
+	[daily]="01 - Daily Notes"
+)
+
+# Read the `type:` value from the top YAML frontmatter block (first match).
+read_type() {
+	awk '
+	NR == 1 && $0 != "---" { exit }
+	NR == 1 { next }
+	$0 == "---" { exit }
+	/^type:[[:space:]]*/ {
+		sub(/^type:[[:space:]]*/, ""); gsub(/[[:space:]]+$/, ""); print; exit
+	}
+	' "$1"
+}
+
+moved=0
+for dir in "$VAULT" "$VAULT/02 - Fleeting Notes"; do
+	[[ -d "$dir" ]] || continue
+	for f in "$dir"/*.md; do
+		[[ -e "$f" ]] || continue
+		t="$(read_type "$f")"
+		[[ -n "$t" ]] || continue
+		sub="${DEST[$t]:-}"
+		[[ -n "$sub" ]] || continue
+		target="$VAULT/$sub/$(basename "$f")"
+		[[ "$f" -ef "$target" ]] && continue # already filed
+		if [[ -e "$target" ]]; then
+			echo "og: skip (exists): $sub/$(basename "$f")" >&2
+			continue
+		fi
+		mkdir -p "$VAULT/$sub"
+		mv -n -- "$f" "$target"
+		echo "og: $(basename "$f") → $sub/"
+		moved=$((moved + 1))
+	done
+done
+echo "og: filed $moved note(s)."
