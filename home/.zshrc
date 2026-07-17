@@ -204,10 +204,14 @@ os() { nvim "$(sn "$@")"; }                      # os v|sv|jc "ref": open a scri
 morning() { (builtin cd "$PKM" && claude "/morning"); }     # start the day (Claude Code /morning)
 evening() { (builtin cd "$PKM" && claude "/end-of-day"); }  # close the day (Claude Code /end-of-day)
 
-# ── Vault sync (two-machine workflow: vpull at start, vpush at end) ──────
-vst()   { git -C "$PKM" status -sb; }                       # vault status from anywhere
-vpull() { git -C "$PKM" pull --rebase --autostash; }        # pull latest (stashes local edits, re-applies)
-vpush() {                                                    # commit all + push; optional msg: vpush "reorg"
+# ── Vault backup (Obsidian Sync = primary sync; git = one-way backup) ────
+# Obsidian Sync moves notes between devices automatically. Git is now a
+# versioned BACKUP only: run `vpush` occasionally from ONE machine.
+# `vpull` is retired from routine — use it only to restore/inspect, since
+# routine two-way pulling is what used to conflict with Obsidian Sync.
+vst()   { git -C "$PKM" status -sb; }                       # vault git status from anywhere
+vpull() { git -C "$PKM" pull --rebase --autostash; }        # RESTORE only — not routine (see note above)
+vpush() {                                                    # one-way backup snapshot; optional msg: vpush "reorg"
   git -C "$PKM" add -A
   if git -C "$PKM" diff --cached --quiet; then
     echo "vault: nothing to commit"; return 0
