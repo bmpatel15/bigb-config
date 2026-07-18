@@ -97,6 +97,8 @@ swaync
 system-config-printer
 tailscale
 terminus-font
+tesseract-data-eng
+tesseract-data-guj
 thermald
 tmux
 ttf-jetbrains-mono-nerd

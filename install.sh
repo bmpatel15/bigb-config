@@ -54,9 +54,10 @@ link_configs() {
     for d in "${LINK_CONFIG[@]}"; do [[ -e "$DOTS/config/$d" ]] && link "$DOTS/config/$d" "$HOME/.config/$d"; done
     mkdir -p "$HOME/.local/bin"
     for b in "${LINK_BIN[@]}" "${LINK_BIN_PKM[@]}"; do [[ -e "$DOTS/bin/$b" ]] && link "$DOTS/bin/$b" "$HOME/.local/bin/$b"; done
-    # Claude Code: slash commands + settings (secrets/state stay in ~/.claude, untracked)
+    # Claude Code: slash commands + skills + settings (secrets/state stay in ~/.claude, untracked)
     mkdir -p "$HOME/.claude"
     link "$DOTS/claude/commands"       "$HOME/.claude/commands"
+    link "$DOTS/claude/skills"         "$HOME/.claude/skills"
     link "$DOTS/claude/settings.json"  "$HOME/.claude/settings.json"
     link "$DOTS/claude/config-project" "$HOME/.config/.claude"
 }
