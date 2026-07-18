@@ -18,3 +18,4 @@ config/gazelle/config.json
 
 # chromium-generated theme cache (manifest.json etc. are tracked; the cache is not)
 chromium/ethereal-theme/Cached Theme.pak
+config/quickshell/.qmlls.ini
