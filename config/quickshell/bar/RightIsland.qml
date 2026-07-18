@@ -168,6 +168,16 @@ Island {
 
         StatusItem {
             anchors.verticalCenter: parent.verticalCenter
+            visible: Notifs.dnd || Notifs.count > 0
+            icon: Notifs.dnd ? "󰂛" : "󰂚"
+            iconColor: Notifs.dnd ? Appearance.colors.muted : Appearance.colors.peach
+            label: !Notifs.dnd && Notifs.count > 0 ? Notifs.count : ""
+            onClicked: Notifs.toggleCenter()
+            onSecondaryClicked: Notifs.toggleDnd()
+        }
+
+        StatusItem {
+            anchors.verticalCenter: parent.verticalCenter
             icon: "⏻"
             iconColor: Appearance.colors.red
             onClicked: Quickshell.execDetached([Paths.powerMenuScript])

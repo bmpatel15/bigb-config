@@ -59,7 +59,8 @@ hl.on("hyprland.start", function()
 	local USE_QUICKSHELL = true
 	hl.exec_cmd(USE_QUICKSHELL and "uwsm app -- qs" or "waybar")
 	hl.exec_cmd("systemctl --user start hyprpolkitagent")
-	hl.exec_cmd("swaync") -- notification daemon
+	-- Notifications now live in Quickshell (Stage C). swaync stays installed:
+	-- its D-Bus activation file auto-spawns it if qs dies (crash failsafe).
 	hl.exec_cmd("wl-paste --type text --watch cliphist store") -- clipboard history (text)
 	hl.exec_cmd("wl-paste --type image --watch cliphist store") -- clipboard history (images)
 	hl.exec_cmd("hyprctl setcursor Bibata-Modern-Ice 30")
@@ -299,7 +300,7 @@ hl.bind(mainMod .. " + V", hl.dsp.send_shortcut({ mods = "SHIFT", key = "Insert"
 -- Clipboard history (cliphist via rofi)
 hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("cliphist list | rofi -dmenu | cliphist decode | wl-copy"))
 -- Notification panel toggle + night light toggle
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw"))
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs ipc call notifs toggle || swaync-client -t -sw"))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs ipc call controlcenter toggle")) -- Quickshell control center
 hl.bind(secondMod .. " + N", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/nightlight.sh"))
 -- Screenshots (grim + slurp -> swappy annotate/copy/save)

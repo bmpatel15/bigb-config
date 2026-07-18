@@ -5,6 +5,7 @@ import qs.bar
 import qs.osd
 import qs.services
 import qs.controlcenter
+import qs.notifications
 
 ShellRoot {
     Variants {
@@ -17,11 +18,20 @@ ShellRoot {
 
     Osd {}
 
+    Popups {}
+
     LazyLoader {
         id: ccLoader
         loading: true
 
         ControlCenter {}
+    }
+
+    LazyLoader {
+        id: notifCenterLoader
+        loading: true
+
+        Center {}
     }
 
     // External control surface (`qs ipc call <target> <fn>`). The hardware
@@ -75,6 +85,28 @@ ShellRoot {
         function toggle(): void {
             if (ccLoader.item)
                 ccLoader.item.toggle();
+        }
+    }
+
+    IpcHandler {
+        target: "notifs"
+
+        function toggle(): void {
+            Notifs.toggleCenter();
+        }
+        function dnd(): void {
+            Notifs.toggleDnd();
+        }
+        function clearAll(): void {
+            Notifs.clearAll();
+        }
+        function debug(): string {
+            return "popups=" + Notifs.popups.length
+                + " count=" + Notifs.count
+                + " dnd=" + Notifs.dnd
+                + " centerOpen=" + Notifs.centerOpen
+                + " loaded=" + (notifCenterLoader.item !== null)
+                + " visible=" + (notifCenterLoader.item?.visible ?? "n/a");
         }
     }
 }

@@ -6,7 +6,7 @@
 > |---|---|---|
 > | A | Foundation + bar (replaces Waybar only) | **Implemented & live** (2026-07-18; bar running, Waybar stopped, tray watcher acquired). Remaining sign-off: autostart at next login, ~1 week burn-in (esp. tray menus), then merge `quickshell`→`main`. |
 > | B | OSDs + control center (SUPER+D) | **Implemented & live** (2026-07-18). Volume/mic/brightness OSDs at bottom-center overlay; XF86 keys route via `qs ipc call` with `\|\| wpctl/brightnessctl` fallback; CC on SUPER+D (chips, sliders, media, Wi-Fi/BT lists, session row). Remaining sign-off: user-driven Wi-Fi password connect + BT connect/disconnect from the panel, a few days of key/OSD burn-in. |
-> | C | Notifications (replaces SwayNC, rebind SUPER+N) | Not started |
+> | C | Notifications (replaces SwayNC, rebind SUPER+N) | **Implemented & live** (2026-07-18). qs owns org.freedesktop.Notifications; popups (8/4/never timeouts, urgency borders, actions, click-to-dismiss), history center on SUPER+N (DND, clear-all), bar bell w/ count; swaync removed from autostart but its D-Bus activation file = crash failsafe; SUPER+N falls back to swaync-client. Sign-off: real-app notifications (browser, telegram web) + a few days burn-in. |
 > | D | Launcher (SUPER+SPACE) + wallpaper picker (SUPER+SHIFT+W) | Not started |
 > | E | Optional extras (ranked in §29) | Not started |
 >
