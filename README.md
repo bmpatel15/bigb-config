@@ -101,9 +101,9 @@ These are intentionally **not** automated:
    ```
 2. **Sign in** — Chromium (per profile), and Claude Code (`claude` — its `pyright-lsp` plugin auto-installs from the tracked `settings.json` on first run).
    Chromium profiles: run `bash ~/bigb-config/setup/chromium-profiles.sh` (browser closed), then per profile load the unpacked theme: `chrome://extensions` → Developer mode → Load unpacked → `~/bigb-config/chromium/ethereal-theme`.
-3. **Obsidian vault** — clone it **before** the nightly `qc-process` timer fires (quick-capture and argus write into it):
+3. **Obsidian vault** — notes arrive via **Obsidian Sync**: install Obsidian, sign in, and connect the `BigB-PKM` vault at `~/Documents/BigB-PKM` **before** the nightly `qc-process` timer fires (quick-capture and argus write into it). The git clone is only needed to restore/inspect the versioned backup, or to link the backup remote on the one machine that runs `vpush`:
    ```sh
-   git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM
+   git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM   # backup restore / vpush machine only
    ```
 4. **API keys** — run `hermes` once to configure its keys (`qc-process` depends on it), and create `~/.config/argus/api_key`. Neither is tracked in git.
 5. **btrfs snapshots** — set up snapper (see [below](#btrfs-snapshots-do-once-needs-root)).
@@ -169,7 +169,9 @@ Two strategies, chosen per app by whether the app rewrites its own config file:
 ```sh
 cd ~/bigb-config && git pull
 ./install.sh pkm            # links today-note/ot/rollover/og/sn/tasks/week-note/obs + the greeter
-git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM   # only if the vault isn't there yet
+# vault arrives via Obsidian Sync (install Obsidian + connect BigB-PKM at ~/Documents/BigB-PKM);
+# clone from GitHub only to restore the backup or to make this the vpush backup machine:
+# git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM
 exec zsh                    # loads the PKM aliases (oo/od/ow/os/morning/evening) + the daily greeter
 ```
 
@@ -224,7 +226,7 @@ sudo systemctl enable --now snapper-timeline.timer snapper-cleanup.timer
 
 - Restore `~/.ssh` keys (or generate + add pubkey to GitHub, then switch the remote to SSH).
 - Sign in: Chromium (per profile), Claude Code (`claude`).
-- Clone the Obsidian vault: `git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM`.
+- Connect the Obsidian vault via Obsidian Sync (`~/Documents/BigB-PKM`). Git clone only for backup restore / the `vpush` machine.
 - Run `hermes` once to configure API keys; create `~/.config/argus/api_key`.
 - Set up snapper for btrfs rollback.
 - Log out/in so the zsh login shell + Hyprland session take effect.

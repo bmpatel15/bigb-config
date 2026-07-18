@@ -13,22 +13,6 @@ SELF_DIR="$(cd -- "$(dirname -- "$0")" && pwd)"
 
 TODAY="$(date +%F)"
 
-# Guard against the classic "forgot vpull" footgun: rolling over a stale vault
-# re-surfaces tasks another machine already finished. If the vault tracks a
-# reachable upstream and is behind it, refuse and point at vpull. Offline or
-# no-upstream vaults skip the check silently so local work is never blocked.
-if git -C "$VAULT" rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
-	if git -C "$VAULT" fetch --quiet 2>/dev/null; then
-		behind="$(git -C "$VAULT" rev-list --count 'HEAD..@{u}' 2>/dev/null || echo 0)"
-		if [[ "${behind:-0}" -gt 0 ]]; then
-			up="$(git -C "$VAULT" rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)"
-			echo "rollover: vault is $behind commit(s) behind $up." >&2
-			echo "         Run  vpull  first, then re-run rollover." >&2
-			exit 1
-		fi
-	fi
-fi
-
 # Most recent daily note strictly before today (ISO filenames sort chronologically).
 PREV=""
 for f in "$DIR"/*.md; do

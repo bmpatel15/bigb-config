@@ -215,7 +215,8 @@ setup_pkm() { # PKM note-processing commands + daily-routine greeter (vault: ~/D
     if [[ -d "$HOME/Documents/BigB-PKM" ]]; then
         info "ok: vault at ~/Documents/BigB-PKM"
     else
-        info "vault not found — clone it:  git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM"
+        info "vault not found — it arrives via Obsidian Sync (install Obsidian, connect BigB-PKM at ~/Documents/BigB-PKM)."
+        info "  git clone git@github.com:bmpatel15/BigB-PKM.git only for backup restore / the vpush machine"
     fi
 
     cat <<'EOF'
@@ -259,7 +260,9 @@ main() {
       * Chromium: run  bash ~/bigb-config/setup/chromium-profiles.sh  (browser closed),
         then per profile: chrome://extensions -> Developer mode -> Load unpacked ->
         ~/bigb-config/chromium/ethereal-theme
-      * Clone the Obsidian vault BEFORE the nightly qc-process timer fires:
+      * Connect the Obsidian vault via Obsidian Sync (~/Documents/BigB-PKM) BEFORE
+        the nightly qc-process timer fires. Git clone only for backup restore or
+        the machine that runs vpush:
           git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM
       * Run `hermes` once to configure its API keys (qc-process depends on it).
       * Create ~/.config/argus/api_key (argus API key; never committed).
