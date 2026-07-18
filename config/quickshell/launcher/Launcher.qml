@@ -5,20 +5,21 @@ import Quickshell.Widgets
 import qs.config
 import qs.components
 
-// App launcher (SUPER+SPACE). Anchored near the top so the window doesn't
-// jump as the result list grows/shrinks. Fully keyboard driven: type to
-// filter, Up/Down or Ctrl+J/K, Enter to launch, Esc to close.
+// App launcher (SUPER+SPACE). Video-style layout: sits center-low, result
+// list above a bottom search field; the panel grows upward from a stable
+// bottom edge as results change. Fully keyboard driven: type to filter,
+// Up/Down or Ctrl+J/K, Enter to launch, Esc to close. (v2 layout)
 PanelWindow {
     id: root
 
     visible: false
-    anchors.top: true
-    margins.top: 160
+    anchors.bottom: true
+    margins.bottom: 200
     implicitWidth: 560
     implicitHeight: card.implicitHeight
     color: "transparent"
     // A single-anchored PanelWindow auto-reserves an exclusive zone like a
-    // bar would, shoving windows down — this is an overlay, never reserve.
+    // bar would, shoving windows around — this is an overlay, never reserve.
     exclusionMode: ExclusionMode.Ignore
     focusable: true
 
@@ -139,57 +140,6 @@ PanelWindow {
             anchors.margins: Appearance.spacing.lg
             spacing: Appearance.spacing.md
 
-            Row {
-                width: parent.width
-                spacing: Appearance.spacing.sm
-
-                StyledText {
-                    id: searchIcon
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "󰍉"
-                    font.pixelSize: Appearance.font.large
-                    color: Appearance.colors.accent
-                }
-
-                TextInput {
-                    id: queryField
-
-                    width: parent.width - searchIcon.width - Appearance.spacing.sm
-                    height: 32
-                    verticalAlignment: TextInput.AlignVCenter
-                    font.family: Appearance.font.family
-                    font.pixelSize: Appearance.font.large
-                    color: Appearance.colors.text
-                    clip: true
-
-                    onTextChanged: root.recompute()
-                    onAccepted: root.launch(root.results[root.selected])
-
-                    Keys.onEscapePressed: root.close()
-                    Keys.onDownPressed: root.moveSelection(1)
-                    Keys.onUpPressed: root.moveSelection(-1)
-                    Keys.onPressed: event => {
-                        if (event.modifiers & Qt.ControlModifier) {
-                            if (event.key === Qt.Key_J) {
-                                root.moveSelection(1);
-                                event.accepted = true;
-                            } else if (event.key === Qt.Key_K) {
-                                root.moveSelection(-1);
-                                event.accepted = true;
-                            }
-                        }
-                    }
-
-                    StyledText {
-                        visible: queryField.text === ""
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "search applications"
-                        font.pixelSize: Appearance.font.large
-                        color: Appearance.colors.muted
-                    }
-                }
-            }
-
             ListView {
                 id: list
 
@@ -241,9 +191,14 @@ PanelWindow {
 
                             StyledText {
                                 visible: text !== ""
-                                text: row.modelData.genericName
+                                width: row.width - 28 - 3 * Appearance.spacing.md
+                                text: row.modelData.comment !== ""
+                                    ? row.modelData.comment
+                                    : row.modelData.genericName
                                 font.pixelSize: Appearance.font.small
                                 color: Appearance.colors.muted
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
                             }
                         }
                     }
@@ -266,6 +221,63 @@ PanelWindow {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: "no matches"
                 color: Appearance.colors.muted
+            }
+
+            Rectangle {
+                width: parent.width
+                implicitHeight: 1
+                color: Appearance.colors.border
+            }
+
+            Row {
+                width: parent.width
+                spacing: Appearance.spacing.sm
+
+                StyledText {
+                    id: searchIcon
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "󰍉"
+                    font.pixelSize: Appearance.font.large
+                    color: Appearance.colors.accent
+                }
+
+                TextInput {
+                    id: queryField
+
+                    width: parent.width - searchIcon.width - Appearance.spacing.sm
+                    height: 32
+                    verticalAlignment: TextInput.AlignVCenter
+                    font.family: Appearance.font.family
+                    font.pixelSize: Appearance.font.large
+                    color: Appearance.colors.text
+                    clip: true
+
+                    onTextChanged: root.recompute()
+                    onAccepted: root.launch(root.results[root.selected])
+
+                    Keys.onEscapePressed: root.close()
+                    Keys.onDownPressed: root.moveSelection(1)
+                    Keys.onUpPressed: root.moveSelection(-1)
+                    Keys.onPressed: event => {
+                        if (event.modifiers & Qt.ControlModifier) {
+                            if (event.key === Qt.Key_J) {
+                                root.moveSelection(1);
+                                event.accepted = true;
+                            } else if (event.key === Qt.Key_K) {
+                                root.moveSelection(-1);
+                                event.accepted = true;
+                            }
+                        }
+                    }
+
+                    StyledText {
+                        visible: queryField.text === ""
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "search applications"
+                        font.pixelSize: Appearance.font.large
+                        color: Appearance.colors.muted
+                    }
+                }
             }
         }
     }

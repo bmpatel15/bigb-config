@@ -6,22 +6,24 @@ import Quickshell.Widgets
 import qs.config
 import qs.components
 
-// Wallpaper grid over the existing wallpaper-picker.sh system: same image
-// dir, same thumb cache, and applying goes through the script (--set) so
-// daemon management, transition, state file, and hyprlock-bg staging stay
-// in one place. Type to filter; arrows navigate the grid (Left/Right edit
-// the query only while it has text); Enter applies. No anchors →
-// compositor centers the window.
+// Bottom-center wallpaper filmstrip over the existing wallpaper-picker.sh
+// system: same image dir, same thumb cache, applying goes through the
+// script (--set) so daemon/transition/state/hyprlock-bg logic stays in one
+// place. Type to filter; Left/Right ride the strip while the query is
+// empty (else they edit the text); Enter applies; Esc closes.
 PanelWindow {
     id: root
 
     visible: false
-    implicitWidth: 940
-    implicitHeight: 680
+    anchors.bottom: true
+    margins.bottom: 110
+    implicitWidth: 1184
+    implicitHeight: card.implicitHeight
     color: "transparent"
+    // One-anchor PanelWindows auto-reserve an exclusive zone — never for
+    // overlays.
+    exclusionMode: ExclusionMode.Ignore
     focusable: true
-
-    readonly property int columns: 5
 
     property var images: []
     property var filtered: []
@@ -57,13 +59,14 @@ PanelWindow {
             ? images
             : images.filter(p => baseName(p).toLowerCase().includes(q));
         selected = 0;
+        strip.positionViewAtBeginning();
     }
 
     function moveSelection(delta) {
         if (filtered.length === 0)
             return;
         selected = Math.max(0, Math.min(filtered.length - 1, selected + delta));
-        grid.positionViewAtIndex(selected, GridView.Contain);
+        strip.positionViewAtIndex(selected, ListView.Center);
     }
 
     function apply(path) {
@@ -101,7 +104,6 @@ PanelWindow {
         id: warmProc
         command: ["bash", Paths.wallpaperScript, "--warm"]
         onExited: {
-            // Thumbs that were missing when the grid opened exist now.
             if (root.visible)
                 listProc.running = true;
         }
@@ -126,14 +128,108 @@ PanelWindow {
         color: Qt.rgba(6 / 255, 11 / 255, 30 / 255, 0.96)
         border.width: 1
         border.color: Appearance.colors.border
+        implicitHeight: content.implicitHeight + 2 * Appearance.spacing.lg
 
         Column {
-            anchors.fill: parent
+            id: content
+
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
             anchors.margins: Appearance.spacing.lg
             spacing: Appearance.spacing.md
 
+            ListView {
+                id: strip
+
+                width: parent.width
+                implicitHeight: 158
+                orientation: ListView.Horizontal
+                spacing: Appearance.spacing.sm
+                clip: true
+                model: root.filtered
+
+                delegate: Item {
+                    id: cell
+
+                    required property var modelData
+                    required property int index
+
+                    readonly property bool isSelected: cell.index === root.selected
+                    readonly property bool isActive: cell.modelData === root.current
+
+                    width: 224
+                    height: strip.implicitHeight
+                    z: isSelected ? 2 : 0
+
+                    Column {
+                        anchors.fill: parent
+                        spacing: 2
+
+                        Rectangle {
+                            id: frame
+
+                            width: parent.width
+                            height: 130
+                            radius: Appearance.radius.popup
+                            color: "transparent"
+                            border.width: cell.isSelected || cell.isActive ? 2 : 1
+                            border.color: cell.isSelected ? Appearance.colors.peach
+                                : cell.isActive ? Appearance.colors.accent
+                                : Appearance.colors.border
+                            scale: cell.isSelected ? 1.05 : 1.0
+                            transformOrigin: Item.Center
+
+                            Behavior on scale {
+                                NumberAnimation {
+                                    duration: Appearance.anim.fast
+                                    easing.type: Appearance.anim.easing
+                                }
+                            }
+
+                            ClippingRectangle {
+                                anchors.fill: parent
+                                anchors.margins: 3
+                                radius: Appearance.radius.small
+                                color: Appearance.colors.surface
+
+                                Image {
+                                    anchors.fill: parent
+                                    source: root.thumbFor(cell.modelData)
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    sourceSize.width: 256
+                                    sourceSize.height: 256
+                                }
+                            }
+                        }
+
+                        StyledText {
+                            width: parent.width
+                            horizontalAlignment: Text.AlignHCenter
+                            text: root.baseName(cell.modelData)
+                            font.pixelSize: Appearance.font.small
+                            color: cell.isSelected ? Appearance.colors.peach
+                                : cell.isActive ? Appearance.colors.accent
+                                : Appearance.colors.muted
+                            elide: Text.ElideMiddle
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onContainsMouseChanged: {
+                            if (containsMouse)
+                                root.selected = cell.index;
+                        }
+                        onClicked: root.apply(cell.modelData)
+                    }
+                }
+            }
+
             Row {
-                id: headerRow
+                id: searchRow
                 width: parent.width
                 spacing: Appearance.spacing.sm
 
@@ -160,8 +256,8 @@ PanelWindow {
                     onAccepted: root.apply(root.filtered[root.selected])
 
                     Keys.onEscapePressed: root.visible = false
-                    Keys.onDownPressed: root.moveSelection(root.columns)
-                    Keys.onUpPressed: root.moveSelection(-root.columns)
+                    Keys.onDownPressed: root.moveSelection(1)
+                    Keys.onUpPressed: root.moveSelection(-1)
                     Keys.onLeftPressed: event => {
                         if (text === "")
                             root.moveSelection(-1);
@@ -190,87 +286,6 @@ PanelWindow {
                     text: root.filtered.length + " / " + root.images.length
                     font.pixelSize: Appearance.font.small
                     color: Appearance.colors.muted
-                }
-            }
-
-            GridView {
-                id: grid
-
-                width: parent.width
-                height: parent.height - headerRow.height - Appearance.spacing.md
-                clip: true
-                cellWidth: Math.floor(width / root.columns)
-                cellHeight: Math.floor(cellWidth * 0.62) + 24
-                model: root.filtered
-
-                delegate: Item {
-                    id: cell
-
-                    required property var modelData
-                    required property int index
-
-                    readonly property bool isSelected: cell.index === root.selected
-                    readonly property bool isActive: cell.modelData === root.current
-
-                    width: grid.cellWidth
-                    height: grid.cellHeight
-
-                    Column {
-                        anchors.fill: parent
-                        anchors.margins: 5
-                        spacing: 2
-
-                        Rectangle {
-                            id: frame
-
-                            width: parent.width
-                            height: parent.height - nameLabel.height - 2
-                            radius: Appearance.radius.popup
-                            color: "transparent"
-                            border.width: cell.isSelected || cell.isActive ? 2 : 1
-                            border.color: cell.isSelected ? Appearance.colors.peach
-                                : cell.isActive ? Appearance.colors.accent
-                                : Appearance.colors.border
-
-                            ClippingRectangle {
-                                anchors.fill: parent
-                                anchors.margins: 3
-                                radius: Appearance.radius.small
-                                color: Appearance.colors.surface
-
-                                Image {
-                                    anchors.fill: parent
-                                    source: root.thumbFor(cell.modelData)
-                                    fillMode: Image.PreserveAspectCrop
-                                    asynchronous: true
-                                    sourceSize.width: 256
-                                    sourceSize.height: 256
-                                }
-                            }
-                        }
-
-                        StyledText {
-                            id: nameLabel
-                            width: parent.width
-                            horizontalAlignment: Text.AlignHCenter
-                            text: root.baseName(cell.modelData)
-                            font.pixelSize: Appearance.font.small
-                            color: cell.isSelected ? Appearance.colors.peach
-                                : cell.isActive ? Appearance.colors.accent
-                                : Appearance.colors.muted
-                            elide: Text.ElideMiddle
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onContainsMouseChanged: {
-                            if (containsMouse)
-                                root.selected = cell.index;
-                        }
-                        onClicked: root.apply(cell.modelData)
-                    }
                 }
             }
         }
