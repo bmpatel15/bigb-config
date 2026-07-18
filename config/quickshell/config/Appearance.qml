@@ -15,6 +15,7 @@ Singleton {
         readonly property color surfaceBlue: "#3C486D"
         readonly property color text: "#dfeaf0"
         readonly property color peach: "#ffcead"
+        readonly property color peachDim: Qt.rgba(255 / 255, 206 / 255, 173 / 255, 0.18)
         readonly property color orange: "#F99957"
         readonly property color accent: "#7d82d9"
         readonly property color accentLight: "#c2c4f0"

@@ -38,7 +38,7 @@ Island {
             anchors.verticalCenter: parent.verticalCenter
             visible: text !== ""
             text: Hyprland.activeToplevel?.title ?? ""
-            color: Appearance.colors.muted
+            color: Appearance.colors.peach
             width: Math.min(implicitWidth, 420)
             elide: Text.ElideRight
         }

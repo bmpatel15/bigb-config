@@ -39,8 +39,8 @@ Row {
             height: 22
             radius: 11
             color: modelData.urgent ? Appearance.colors.red
-                 : isActive ? Appearance.colors.accent
-                 : Appearance.colors.accentDim
+                 : isActive ? Appearance.colors.peach
+                 : Appearance.colors.peachDim
 
             Behavior on width {
                 NumberAnimation {
@@ -58,7 +58,7 @@ Row {
                 anchors.centerIn: parent
                 text: pill.modelData.id
                 font.pixelSize: Appearance.font.small
-                color: pill.isActive ? Appearance.colors.bg : Appearance.colors.text
+                color: pill.isActive ? Appearance.colors.bg : Appearance.colors.peach
             }
 
             MouseArea {
