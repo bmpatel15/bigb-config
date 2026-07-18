@@ -17,6 +17,9 @@ PanelWindow {
     implicitWidth: 560
     implicitHeight: card.implicitHeight
     color: "transparent"
+    // A single-anchored PanelWindow auto-reserves an exclusive zone like a
+    // bar would, shoving windows down — this is an overlay, never reserve.
+    exclusionMode: ExclusionMode.Ignore
     focusable: true
 
     property var results: []

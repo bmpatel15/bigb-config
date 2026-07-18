@@ -9,17 +9,23 @@ import qs.components
 // Wallpaper grid over the existing wallpaper-picker.sh system: same image
 // dir, same thumb cache, and applying goes through the script (--set) so
 // daemon management, transition, state file, and hyprlock-bg staging stay
-// in one place. No anchors → compositor centers the window.
+// in one place. Type to filter; arrows navigate the grid (Left/Right edit
+// the query only while it has text); Enter applies. No anchors →
+// compositor centers the window.
 PanelWindow {
     id: root
 
     visible: false
     implicitWidth: 940
-    implicitHeight: 660
+    implicitHeight: 680
     color: "transparent"
     focusable: true
 
+    readonly property int columns: 5
+
     property var images: []
+    property var filtered: []
+    property int selected: 0
     property string current: ""
 
     function toggle() {
@@ -29,14 +35,35 @@ PanelWindow {
         }
         refresh();
         visible = true;
+        queryField.forceActiveFocus();
     }
 
     function refresh() {
+        queryField.text = "";
         currentFile.reload();
         currentFile.waitForJob();
         current = currentFile.text().trim();
         listProc.running = true;
         warmProc.running = true;
+    }
+
+    function baseName(path) {
+        return path.split("/").pop().replace(/\.[^.]+$/, "");
+    }
+
+    function recompute() {
+        const q = queryField.text.trim().toLowerCase();
+        filtered = q === ""
+            ? images
+            : images.filter(p => baseName(p).toLowerCase().includes(q));
+        selected = 0;
+    }
+
+    function moveSelection(delta) {
+        if (filtered.length === 0)
+            return;
+        selected = Math.max(0, Math.min(filtered.length - 1, selected + delta));
+        grid.positionViewAtIndex(selected, GridView.Contain);
     }
 
     function apply(path) {
@@ -63,7 +90,10 @@ PanelWindow {
         command: ["find", Paths.wallpaperDir, "-maxdepth", "1", "-type", "f",
             "(", "-iname", "*.jpg", "-o", "-iname", "*.jpeg", "-o", "-iname", "*.png", ")"]
         stdout: StdioCollector {
-            onStreamFinished: root.images = this.text.trim().split("\n").filter(l => l !== "").sort()
+            onStreamFinished: {
+                root.images = this.text.trim().split("\n").filter(l => l !== "").sort();
+                root.recompute();
+            }
         }
     }
 
@@ -97,28 +127,67 @@ PanelWindow {
         border.width: 1
         border.color: Appearance.colors.border
 
-        focus: true
-        Keys.onEscapePressed: root.visible = false
-
         Column {
             anchors.fill: parent
             anchors.margins: Appearance.spacing.lg
             spacing: Appearance.spacing.md
 
-            Item {
+            Row {
+                id: headerRow
                 width: parent.width
-                implicitHeight: 24
+                spacing: Appearance.spacing.sm
 
                 StyledText {
-                    text: "Wallpaper"
+                    id: searchIcon
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "󰍉"
                     font.pixelSize: Appearance.font.large
-                    font.weight: 600
-                    color: Appearance.colors.peach
+                    color: Appearance.colors.accent
+                }
+
+                TextInput {
+                    id: queryField
+
+                    width: parent.width - searchIcon.width - countLabel.width - 2 * Appearance.spacing.sm
+                    height: 30
+                    verticalAlignment: TextInput.AlignVCenter
+                    font.family: Appearance.font.family
+                    font.pixelSize: Appearance.font.large
+                    color: Appearance.colors.text
+                    clip: true
+
+                    onTextChanged: root.recompute()
+                    onAccepted: root.apply(root.filtered[root.selected])
+
+                    Keys.onEscapePressed: root.visible = false
+                    Keys.onDownPressed: root.moveSelection(root.columns)
+                    Keys.onUpPressed: root.moveSelection(-root.columns)
+                    Keys.onLeftPressed: event => {
+                        if (text === "")
+                            root.moveSelection(-1);
+                        else
+                            event.accepted = false;
+                    }
+                    Keys.onRightPressed: event => {
+                        if (text === "")
+                            root.moveSelection(1);
+                        else
+                            event.accepted = false;
+                    }
+
+                    StyledText {
+                        visible: queryField.text === ""
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "search wallpapers"
+                        font.pixelSize: Appearance.font.large
+                        color: Appearance.colors.muted
+                    }
                 }
 
                 StyledText {
-                    anchors.right: parent.right
-                    text: root.images.length + " images"
+                    id: countLabel
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.filtered.length + " / " + root.images.length
                     font.pixelSize: Appearance.font.small
                     color: Appearance.colors.muted
                 }
@@ -128,16 +197,11 @@ PanelWindow {
                 id: grid
 
                 width: parent.width
-                height: parent.height - 24 - Appearance.spacing.md
+                height: parent.height - headerRow.height - Appearance.spacing.md
                 clip: true
-                cellWidth: Math.floor(width / 5)
-                cellHeight: cellWidth * 0.72
-                model: root.images
-                focus: true
-                currentIndex: 0
-
-                Keys.onReturnPressed: root.apply(root.images[currentIndex])
-                Keys.onEnterPressed: root.apply(root.images[currentIndex])
+                cellWidth: Math.floor(width / root.columns)
+                cellHeight: Math.floor(cellWidth * 0.62) + 24
+                model: root.filtered
 
                 delegate: Item {
                     id: cell
@@ -145,42 +209,66 @@ PanelWindow {
                     required property var modelData
                     required property int index
 
+                    readonly property bool isSelected: cell.index === root.selected
+                    readonly property bool isActive: cell.modelData === root.current
+
                     width: grid.cellWidth
                     height: grid.cellHeight
 
-                    Rectangle {
-                        id: frame
-
+                    Column {
                         anchors.fill: parent
                         anchors.margins: 5
-                        radius: Appearance.radius.popup
-                        color: "transparent"
-                        border.width: cell.GridView.isCurrentItem || isActive ? 2 : 1
-                        border.color: cell.GridView.isCurrentItem ? Appearance.colors.peach
-                            : isActive ? Appearance.colors.accent
-                            : Appearance.colors.border
+                        spacing: 2
 
-                        readonly property bool isActive: cell.modelData === root.current
+                        Rectangle {
+                            id: frame
 
-                        ClippingRectangle {
-                            anchors.fill: parent
-                            anchors.margins: 3
-                            radius: Appearance.radius.small
-                            color: Appearance.colors.surface
+                            width: parent.width
+                            height: parent.height - nameLabel.height - 2
+                            radius: Appearance.radius.popup
+                            color: "transparent"
+                            border.width: cell.isSelected || cell.isActive ? 2 : 1
+                            border.color: cell.isSelected ? Appearance.colors.peach
+                                : cell.isActive ? Appearance.colors.accent
+                                : Appearance.colors.border
 
-                            Image {
+                            ClippingRectangle {
                                 anchors.fill: parent
-                                source: root.thumbFor(cell.modelData)
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                sourceSize.width: 256
-                                sourceSize.height: 256
+                                anchors.margins: 3
+                                radius: Appearance.radius.small
+                                color: Appearance.colors.surface
+
+                                Image {
+                                    anchors.fill: parent
+                                    source: root.thumbFor(cell.modelData)
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    sourceSize.width: 256
+                                    sourceSize.height: 256
+                                }
                             }
+                        }
+
+                        StyledText {
+                            id: nameLabel
+                            width: parent.width
+                            horizontalAlignment: Text.AlignHCenter
+                            text: root.baseName(cell.modelData)
+                            font.pixelSize: Appearance.font.small
+                            color: cell.isSelected ? Appearance.colors.peach
+                                : cell.isActive ? Appearance.colors.accent
+                                : Appearance.colors.muted
+                            elide: Text.ElideMiddle
                         }
                     }
 
                     MouseArea {
                         anchors.fill: parent
+                        hoverEnabled: true
+                        onContainsMouseChanged: {
+                            if (containsMouse)
+                                root.selected = cell.index;
+                        }
                         onClicked: root.apply(cell.modelData)
                     }
                 }
