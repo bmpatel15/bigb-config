@@ -35,7 +35,7 @@ local terminal = "ghostty"
 local fileManager = "dolphin"
 local browser = "$HOME/.config/rofi/browser-mode.sh" -- rofi mode picker -> chromium profile
 local webapp = "$HOME/.config/hypr/scripts/webapp.sh" -- chromium --app in a mode profile
-local menu = "rofi -show drun -show-icons"
+local menu = "qs ipc call launcher toggle || rofi -show drun -show-icons"
 local notes = "obsidian"
 
 -------------------
@@ -310,7 +310,10 @@ hl.bind("CTRL + Print", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/screenshot.s
 
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
-hl.bind(mainMod .. " + SHIFT + W", hl.dsp.exec_cmd("$HOME/.config/rofi/wallpaper-picker.sh"))
+hl.bind(
+	mainMod .. " + SHIFT + W",
+	hl.dsp.exec_cmd("qs ipc call wallpicker toggle || $HOME/.config/rofi/wallpaper-picker.sh")
+)
 hl.bind("ALT + L", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/lock.sh")) -- lock screen
 -- hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
 

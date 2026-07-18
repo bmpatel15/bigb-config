@@ -6,6 +6,8 @@ import qs.osd
 import qs.services
 import qs.controlcenter
 import qs.notifications
+import qs.launcher
+import qs.wallpapers
 
 ShellRoot {
     Variants {
@@ -32,6 +34,20 @@ ShellRoot {
         loading: true
 
         Center {}
+    }
+
+    LazyLoader {
+        id: launcherLoader
+        loading: true
+
+        Launcher {}
+    }
+
+    LazyLoader {
+        id: wallPickerLoader
+        loading: true
+
+        WallPicker {}
     }
 
     // External control surface (`qs ipc call <target> <fn>`). The hardware
@@ -85,6 +101,24 @@ ShellRoot {
         function toggle(): void {
             if (ccLoader.item)
                 ccLoader.item.toggle();
+        }
+    }
+
+    IpcHandler {
+        target: "launcher"
+
+        function toggle(): void {
+            if (launcherLoader.item)
+                launcherLoader.item.toggle();
+        }
+    }
+
+    IpcHandler {
+        target: "wallpicker"
+
+        function toggle(): void {
+            if (wallPickerLoader.item)
+                wallPickerLoader.item.toggle();
         }
     }
 

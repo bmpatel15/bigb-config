@@ -17,6 +17,7 @@ Singleton {
     readonly property string wallpaperScript: configDir + "/rofi/wallpaper-picker.sh"
 
     // Wallpaper cache (Stage D — must stay compatible with wallpaper-picker.sh)
+    readonly property string wallpaperDir: Quickshell.env("WALLPAPER_DIR") ?? (home + "/Pictures/wallpaper")
     readonly property string wallpaperThumbDir: cacheDir + "/wallpaper-picker/thumbs"
     readonly property string wallpaperStateFile: cacheDir + "/wallpaper-picker/current"
 

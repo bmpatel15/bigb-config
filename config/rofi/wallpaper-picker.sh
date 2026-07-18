@@ -70,6 +70,19 @@ set_wallpaper() {
 mapfile -t images < <(find "$WALLPAPER_DIR" -maxdepth 1 -type f \
     \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \) | sort)
 
+# ---- set / warm modes (used by the Quickshell picker) ---------------------
+# --set <path>  apply one wallpaper (daemon, transition, state, hyprlock bg)
+# --warm        build missing thumbnails only
+if [[ "${1:-}" == "--set" ]]; then
+    [[ -n "${2:-}" && -f "${2:-}" ]] || { echo "usage: $0 --set <image>" >&2; exit 1; }
+    set_wallpaper "$2"
+    exit 0
+fi
+if [[ "${1:-}" == "--warm" ]]; then
+    warm_thumbs
+    exit 0
+fi
+
 # ---- restore mode (login) -------------------------------------------------
 if [[ "${1:-}" == "--restore" ]]; then
     ensure_daemon
