@@ -30,6 +30,17 @@ Singleton {
         return ["powerprofilesctl", "set", profile];
     }
 
+    // Session actions (mirror waybar/scripts/power-menu.sh, incl. its
+    // lock-before-suspend wait so the desktop never flashes on resume)
+    readonly property var lockCmd: [lockScript]
+    readonly property var suspendCmd: ["sh", "-c",
+        "\"$1\" & for _ in $(seq 1 50); do pgrep -x hyprlock >/dev/null && break; sleep 0.1; done; systemctl suspend",
+        "sh", lockScript]
+    readonly property var logoutCmd: ["hyprctl", "dispatch", "exit"]
+    readonly property var rebootCmd: ["systemctl", "reboot"]
+    readonly property var poweroffCmd: ["systemctl", "poweroff"]
+    readonly property var nightlightCheckCmd: ["pidof", "hyprsunset"]
+
     // Click-through actions (match old Waybar on-click behavior)
     readonly property var cpuMonitorCmd: ["ghostty", "-e", "htop"]
     readonly property var memMonitorCmd: ["ghostty", "-e", "btop"]
