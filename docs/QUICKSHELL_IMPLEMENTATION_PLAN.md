@@ -4,7 +4,7 @@
 >
 > | Stage | Scope | Status |
 > |---|---|---|
-> | A | Foundation + bar (replaces Waybar only) | **In progress** (started 2026-07-18) |
+> | A | Foundation + bar (replaces Waybar only) | **Implemented & live** (2026-07-18; bar running, Waybar stopped, tray watcher acquired). Remaining sign-off: autostart at next login, ~1 week burn-in (esp. tray menus), then merge `quickshell`→`main`. |
 > | B | OSDs + control center (SUPER+D) | Not started |
 > | C | Notifications (replaces SwayNC, rebind SUPER+N) | Not started |
 > | D | Launcher (SUPER+SPACE) + wallpaper picker (SUPER+SHIFT+W) | Not started |
@@ -103,7 +103,7 @@ config/quickshell/                    [stage]
 │   ├── Battery.qml                   [A] native UPower displayDevice
 │   ├── Network.qml                   [A] native Quickshell.Networking
 │   ├── Bluetooth.qml                 [A] native Quickshell.Bluetooth (namespaced import)
-│   ├── Brightness.qml                [A] brightnessctl Process, read-after-write + sysfs watch
+│   ├── Brightness.qml                [A] brightnessctl Process, read-after-write + sysfs inotify + 15 s sysfs re-read (no process spawn; covers XF86 keys until Stage B)
 │   ├── SysStats.qml                  [A] /proc/stat + /proc/meminfo, 3 s timer (only poller)
 │   ├── Updates.qml                   [A] updates.sh Process, hourly
 │   └── NotifServer.qml               [C] NotificationServer + persistence
@@ -146,7 +146,7 @@ Deliberate non-abstractions: Hyprland, SystemTray, and Mpris are used directly i
 | Network / Bluetooth | native (NM / BlueZ DBus) | new in 0.3.0; replaces nmcli/bluetoothctl parsing |
 | Notifications (C) | native NotificationServer | it IS the daemon |
 | App list (D) | native DesktopEntries | icon+action handling free |
-| Brightness | `brightnessctl` Process | no native module; read-after-write, no poll |
+| Brightness | `brightnessctl` Process + sysfs FileView | no native module; read-after-write for own changes, 15 s sysfs file re-read for external ones (sysfs inotify proved unreliable in testing) |
 | CPU/RAM | /proc reads, 3 s timer | no event source exists (Waybar polls too) |
 | Updates | existing `updates.sh`, hourly | reuse; checkupdates is inherently a command |
 | Power profile | native PowerProfiles (Quickshell.Services.UPower) | writable `PowerProfiles.profile` — no powerprofilesctl needed |

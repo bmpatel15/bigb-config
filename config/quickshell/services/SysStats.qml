@@ -43,18 +43,20 @@ Singleton {
         }
     }
 
+    // Synchronous read each tick: onLoaded does not re-fire for reload()s,
+    // and /proc reads complete in microseconds anyway.
     FileView {
         id: statFile
         path: "/proc/stat"
         preload: false
-        onLoaded: root.parseCpu(statFile.text())
+        printErrors: false
     }
 
     FileView {
         id: memFile
         path: "/proc/meminfo"
         preload: false
-        onLoaded: root.parseMem(memFile.text())
+        printErrors: false
     }
 
     Timer {
@@ -64,7 +66,11 @@ Singleton {
         triggeredOnStart: true
         onTriggered: {
             statFile.reload();
+            statFile.waitForJob();
+            root.parseCpu(statFile.text());
             memFile.reload();
+            memFile.waitForJob();
+            root.parseMem(memFile.text());
         }
     }
 }

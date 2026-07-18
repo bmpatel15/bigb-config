@@ -10,8 +10,18 @@ Row {
 
     required property var barScreen
     readonly property var monitor: Hyprland.monitorFor(barScreen)
-    readonly property bool specialActive:
-        Hyprland.workspaces.values.some(ws => ws.id < 0 && ws.active)
+    // A special workspace's `active` stays true once created even while
+    // hidden, so track visibility through the activespecial event instead
+    // (data: "name,monitor"; empty name = hidden).
+    property bool specialActive: false
+
+    Connections {
+        target: Hyprland
+        function onRawEvent(event) {
+            if (event.name === "activespecial")
+                root.specialActive = event.data.split(",")[0] !== "";
+        }
+    }
 
     spacing: Appearance.spacing.xs
 
