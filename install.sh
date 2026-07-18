@@ -27,7 +27,7 @@ DOTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .zprofile .p10k.zsh .gitconfig)
-LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf fastfetch uwsm)
+LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf fastfetch uwsm quickshell)
 LINK_BIN=(obsidian-capture obsidian-capture-popup qc-process ly-status)
 # PKM note-processing commands + daily-routine greeter (vault: ~/Documents/BigB-PKM).
 LINK_BIN_PKM=(today-note ot rollover on og sn tasks week-note obs pkm-daily)

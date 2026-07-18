@@ -54,7 +54,10 @@ hl.on("hyprland.start", function()
 	hl.exec_cmd(
 		"dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP HYPRLAND_INSTANCE_SIGNATURE"
 	)
-	hl.exec_cmd("waybar")
+	-- Status bar: Quickshell (Stage A; see ~/bigb-config/docs/QUICKSHELL_IMPLEMENTATION_PLAN.md).
+	-- ROLLBACK: flip to false (takes effect next login); immediately: `qs kill; uwsm app -- waybar`
+	local USE_QUICKSHELL = true
+	hl.exec_cmd(USE_QUICKSHELL and "uwsm app -- qs" or "waybar")
 	hl.exec_cmd("systemctl --user start hyprpolkitagent")
 	hl.exec_cmd("swaync") -- notification daemon
 	hl.exec_cmd("wl-paste --type text --watch cliphist store") -- clipboard history (text)
