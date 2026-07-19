@@ -172,10 +172,10 @@ cd ~/bigb-config && git pull
 # vault arrives via Obsidian Sync (install Obsidian + connect BigB-PKM at ~/Documents/BigB-PKM);
 # clone from GitHub only to restore the backup or to make this the vpush backup machine:
 # git clone git@github.com:bmpatel15/BigB-PKM.git ~/Documents/BigB-PKM
-exec zsh                    # loads the PKM aliases (oo/od/ow/os/morning/evening) + the daily greeter
+exec zsh                    # loads the PKM aliases (oo/od/or/ow/os) + the daily greeter
 ```
 
-The `/morning` and `/end-of-day` Claude Code commands come along automatically (the `~/.claude/commands` symlink). The daily rhythm itself is documented in the vault: `06 - Command Center/Daily Workflow.md`.
+The Claude Code commands in `claude/commands/` come along automatically (the `~/.claude/commands` symlink). The daily note itself is written by hand — there are no morning/evening ritual commands. The daily rhythm is documented in the vault: `06 - Command Center/Daily Workflow.md`.
 
 ---
 

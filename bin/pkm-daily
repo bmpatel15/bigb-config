@@ -44,11 +44,11 @@ echo
 if ((10#$hour < 17)); then
 	printf '  %s☀  Good morning%s   %s%s%s\n' "$P" "$R" "$D" "$when" "$R"
 	printf '      today'\''s note is ready  ·  %s%s open task(s)%s in play\n' "$B" "$opentasks" "$R"
-	printf '      %s▶%s  run  %smorning%s  to set your Main 3\n' "$P" "$R" "$B" "$R"
+	printf '      %s▶%s  %srollover%s  to carry yesterday'\''s open tasks forward\n' "$P" "$R" "$B" "$R"
 else
 	printf '  %s🌙  Evening%s   %s%s%s\n' "$P" "$R" "$D" "$when" "$R"
 	printf '      %s%s open task(s)%s today\n' "$B" "$opentasks" "$R"
-	printf '      %s▶%s  run  %sevening%s  to close out & set up tomorrow\n' "$P" "$R" "$B" "$R"
+	printf '      %s▶%s  %sod%s  to open today'\''s note and close out\n' "$P" "$R" "$B" "$R"
 fi
 echo
 

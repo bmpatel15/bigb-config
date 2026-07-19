@@ -204,7 +204,7 @@ setup_pkm() { # PKM note-processing commands + daily-routine greeter (vault: ~/D
     log "PKM vault tooling (note-processing commands + daily routines)"
     mkdir -p "$HOME/.local/bin"
     for b in "${LINK_BIN_PKM[@]}"; do [[ -e "$DOTS/bin/$b" ]] && link "$DOTS/bin/$b" "$HOME/.local/bin/$b"; done
-    # /morning + /end-of-day ride along with the whole-dir commands symlink (link_configs).
+    # Claude Code commands ride along with the whole-dir commands symlink (link_configs).
     [[ -L "$HOME/.claude/commands" ]] || { mkdir -p "$HOME/.claude"; link "$DOTS/claude/commands" "$HOME/.claude/commands"; }
 
     local miss=()
@@ -222,10 +222,10 @@ setup_pkm() { # PKM note-processing commands + daily-routine greeter (vault: ~/D
     cat <<'EOF'
 
     PKM daily workflow ready. Open a new terminal (or `exec zsh`), then:
-      morning        start the day  (note + rollover + Main 3, via Claude Code /morning)
+      od             open today's note (the greeter also opens it each morning)
+      rollover       carry yesterday's unfinished tasks into today
       ot "task"      add a task to today   ·   SUPER+SHIFT+O   quick-capture a thought
-      tasks          list every open task  ·   od / ow / os    open today / week / scripture
-      evening        close the day  (rating + Win/Struggle/Lesson + tomorrow, via /end-of-day)
+      tasks          list every open task  ·   ow / os         open week / scripture
     Reference:  ~/Documents/BigB-PKM/06 - Command Center/Daily Workflow.md
 EOF
 }

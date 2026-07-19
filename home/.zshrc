@@ -201,8 +201,6 @@ alias od='nvim "$(today-note)"'                  # open today's daily (creates i
 alias or='nvim "$PKM/02 - Fleeting Notes/"*.md'  # open all fleeting notes
 alias ow='nvim "$(week-note)"'                   # open this week's review
 os() { nvim "$(sn "$@")"; }                      # os v|sv|jc "ref": open a scripture note
-morning() { (builtin cd "$PKM" && claude "/morning"); }     # start the day (Claude Code /morning)
-evening() { (builtin cd "$PKM" && claude "/end-of-day"); }  # close the day (Claude Code /end-of-day)
 
 # ── Vault backup (Obsidian Sync = primary sync; git = one-way backup) ────
 # Obsidian Sync moves notes between devices automatically. Git is now a
