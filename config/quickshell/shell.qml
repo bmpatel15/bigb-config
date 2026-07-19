@@ -6,8 +6,7 @@ import qs.osd
 import qs.services
 import qs.controlcenter
 import qs.notifications
-import qs.launcher
-import qs.wallpapers
+import qs.overlay
 
 ShellRoot {
     Variants {
@@ -36,18 +35,9 @@ ShellRoot {
         Center {}
     }
 
-    LazyLoader {
-        id: launcherLoader
-        loading: true
-
-        Launcher {}
-    }
-
-    LazyLoader {
-        id: wallPickerLoader
-        loading: true
-
-        WallPicker {}
+    // Single bottom-shelf host for both the launcher and wallpaper picker.
+    BottomOverlayHost {
+        id: overlay
     }
 
     // External control surface (`qs ipc call <target> <fn>`). The hardware
@@ -108,8 +98,7 @@ ShellRoot {
         target: "launcher"
 
         function toggle(): void {
-            if (launcherLoader.item)
-                launcherLoader.item.toggle();
+            overlay.toggleMode("launcher");
         }
     }
 
@@ -117,8 +106,7 @@ ShellRoot {
         target: "wallpicker"
 
         function toggle(): void {
-            if (wallPickerLoader.item)
-                wallPickerLoader.item.toggle();
+            overlay.toggleMode("wallpaper");
         }
     }
 

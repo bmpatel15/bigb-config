@@ -1,42 +1,51 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
-import Quickshell.Hyprland
 import Quickshell.Widgets
 import qs.config
 import qs.components
 
-// Bottom-center wallpaper filmstrip over the existing wallpaper-picker.sh
-// system: same image dir, same thumb cache, applying goes through the
-// script (--set) so daemon/transition/state/hyprlock-bg logic stays in one
-// place. Type to filter; Left/Right ride the strip while the query is
-// empty (else they edit the text); Enter applies; Esc closes.
-PanelWindow {
+// Wallpaper filmstrip for the bottom overlay host (logic carried over
+// verbatim from the old wallpapers/WallPicker.qml — same wallpaper-picker.sh
+// backend, thumb cache and state file). Search pinned to the bottom, strip
+// reveals above. `overlay` is the host; `active` gates focus/input and
+// triggers a refresh when it becomes the current mode.
+Item {
     id: root
 
-    visible: false
-    anchors.bottom: true
-    margins.bottom: 110
-    implicitWidth: 1184
-    implicitHeight: card.implicitHeight
-    color: "transparent"
-    // One-anchor PanelWindows auto-reserve an exclusive zone — never for
-    // overlays.
-    exclusionMode: ExclusionMode.Ignore
-    focusable: true
+    property var overlay
+    property bool active: false
 
     property var images: []
     property var filtered: []
     property int selected: 0
     property string current: ""
 
-    function toggle() {
-        if (visible) {
-            visible = false;
-            return;
+    readonly property int desiredWidth: Appearance.overlay.wallpaperWidth
+    readonly property int desiredHeight: Appearance.overlay.wallpaperStripHeight
+        + 36                             // search row
+        + Appearance.spacing.md          // column gap
+        + 2 * Appearance.spacing.lg      // top/bottom padding
+
+    opacity: active ? 1 : 0
+    visible: opacity > 0.01
+    enabled: active
+
+    Behavior on opacity {
+        NumberAnimation {
+            duration: Appearance.overlay.contentRevealDur
+            easing.type: Appearance.overlay.openEasing
         }
-        refresh();
-        visible = true;
+    }
+
+    onActiveChanged: {
+        if (active) {
+            refresh();
+            takeFocus();
+        }
+    }
+
+    function takeFocus() {
         queryField.forceActiveFocus();
     }
 
@@ -75,17 +84,11 @@ PanelWindow {
         setProc.command = ["bash", Paths.wallpaperScript, "--set", path];
         setProc.running = true;
         current = path;
-        visible = false;
+        root.overlay.close();
     }
 
     function thumbFor(path) {
         return "file://" + Paths.wallpaperThumbDir + "/" + path.split("/").pop() + ".png";
-    }
-
-    HyprlandFocusGrab {
-        windows: [root]
-        active: root.visible
-        onCleared: root.visible = false
     }
 
     Process {
@@ -104,7 +107,7 @@ PanelWindow {
         id: warmProc
         command: ["bash", Paths.wallpaperScript, "--warm"]
         onExited: {
-            if (root.visible)
+            if (root.active)
                 listProc.running = true;
         }
     }
@@ -120,20 +123,23 @@ PanelWindow {
         printErrors: false
     }
 
-    Rectangle {
-        id: card
-
+    Item {
         anchors.fill: parent
-        radius: Appearance.radius.island
-        color: Qt.rgba(6 / 255, 11 / 255, 30 / 255, 0.96)
-        border.width: 1
-        border.color: Appearance.colors.border
-        implicitHeight: content.implicitHeight + 2 * Appearance.spacing.lg
+
+        transform: Translate {
+            y: (!root.active && !Appearance.reducedMotion) ? Appearance.overlay.liftDistance : 0
+            Behavior on y {
+                NumberAnimation {
+                    duration: Appearance.overlay.contentRevealDur
+                    easing.type: Appearance.overlay.openEasing
+                }
+            }
+        }
 
         Column {
             id: content
 
-            anchors.top: parent.top
+            anchors.bottom: parent.bottom
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: Appearance.spacing.lg
@@ -143,7 +149,7 @@ PanelWindow {
                 id: strip
 
                 width: parent.width
-                implicitHeight: 158
+                implicitHeight: Appearance.overlay.wallpaperStripHeight
                 orientation: ListView.Horizontal
                 spacing: Appearance.spacing.sm
                 clip: true
@@ -158,7 +164,7 @@ PanelWindow {
                     readonly property bool isSelected: cell.index === root.selected
                     readonly property bool isActive: cell.modelData === root.current
 
-                    width: 224
+                    width: Appearance.overlay.wallpaperTileWidth
                     height: strip.implicitHeight
                     z: isSelected ? 2 : 0
 
@@ -177,7 +183,7 @@ PanelWindow {
                             border.color: cell.isSelected ? Appearance.colors.peach
                                 : cell.isActive ? Appearance.colors.accent
                                 : Appearance.colors.border
-                            scale: cell.isSelected ? 1.05 : 1.0
+                            scale: cell.isSelected && !Appearance.reducedMotion ? 1.05 : 1.0
                             transformOrigin: Item.Center
 
                             Behavior on scale {
@@ -255,7 +261,7 @@ PanelWindow {
                     onTextChanged: root.recompute()
                     onAccepted: root.apply(root.filtered[root.selected])
 
-                    Keys.onEscapePressed: root.visible = false
+                    Keys.onEscapePressed: root.overlay.close()
                     Keys.onDownPressed: root.moveSelection(1)
                     Keys.onUpPressed: root.moveSelection(-1)
                     Keys.onLeftPressed: event => {

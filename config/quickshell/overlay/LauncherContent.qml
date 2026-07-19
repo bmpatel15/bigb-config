@@ -1,47 +1,49 @@
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Widgets
 import qs.config
 import qs.components
 
-// App launcher (SUPER+SPACE). Video-style layout: sits center-low, result
-// list above a bottom search field; the panel grows upward from a stable
-// bottom edge as results change. Fully keyboard driven: type to filter,
-// Up/Down or Ctrl+J/K, Enter to launch, Esc to close. (v2 layout)
-PanelWindow {
+// Launcher body for the bottom overlay host (logic carried over verbatim
+// from the old launcher/Launcher.qml). Search field pinned to the bottom,
+// results reveal upward. `overlay` is the host; `active` gates focus/input.
+Item {
     id: root
 
-    visible: false
-    anchors.bottom: true
-    margins.bottom: 200
-    implicitWidth: 560
-    implicitHeight: card.implicitHeight
-    color: "transparent"
-    // A single-anchored PanelWindow auto-reserves an exclusive zone like a
-    // bar would, shoving windows around — this is an overlay, never reserve.
-    exclusionMode: ExclusionMode.Ignore
-    focusable: true
+    property var overlay
+    property bool active: false
 
     property var results: []
     property int selected: 0
 
-    function toggle() {
-        if (visible)
-            close();
-        else
-            open();
+    readonly property int rowCount: Math.min(Math.max(results.length, 1), Appearance.overlay.launcherMaxRows)
+    readonly property int desiredWidth: Appearance.overlay.launcherWidth
+    // Bottom-anchored content: surface height matches this so the top
+    // (results) reveals as the surface grows; err slightly large so results
+    // are never clipped.
+    readonly property int desiredHeight: rowCount * Appearance.overlay.launcherRowHeight
+        + 1                              // divider
+        + 36                             // search row
+        + 2 * Appearance.spacing.md      // two column gaps
+        + 2 * Appearance.spacing.lg      // top/bottom padding
+
+    opacity: active ? 1 : 0
+    visible: opacity > 0.01
+    enabled: active
+
+    Behavior on opacity {
+        NumberAnimation {
+            duration: Appearance.overlay.contentRevealDur
+            easing.type: Appearance.overlay.openEasing
+        }
     }
 
-    function open() {
+    onActiveChanged: if (active) takeFocus()
+
+    function takeFocus() {
         queryField.text = "";
         recompute();
-        visible = true;
         queryField.forceActiveFocus();
-    }
-
-    function close() {
-        visible = false;
     }
 
     // Subsequence score: gaps penalized, consecutive runs rewarded.
@@ -106,7 +108,7 @@ PanelWindow {
             });
         else
             entry.execute();
-        close();
+        root.overlay.close();
     }
 
     function moveSelection(delta) {
@@ -115,26 +117,24 @@ PanelWindow {
         selected = Math.max(0, Math.min(results.length - 1, selected + delta));
     }
 
-    HyprlandFocusGrab {
-        windows: [root]
-        active: root.visible
-        onCleared: root.close()
-    }
-
-    Rectangle {
-        id: card
-
+    // Content settle: rise into place on reveal (disabled under reducedMotion).
+    Item {
         anchors.fill: parent
-        radius: Appearance.radius.island
-        color: Qt.rgba(6 / 255, 11 / 255, 30 / 255, 0.96)
-        border.width: 1
-        border.color: Appearance.colors.border
-        implicitHeight: content.implicitHeight + 2 * Appearance.spacing.lg
+
+        transform: Translate {
+            y: (!root.active && !Appearance.reducedMotion) ? Appearance.overlay.liftDistance : 0
+            Behavior on y {
+                NumberAnimation {
+                    duration: Appearance.overlay.contentRevealDur
+                    easing.type: Appearance.overlay.openEasing
+                }
+            }
+        }
 
         Column {
             id: content
 
-            anchors.top: parent.top
+            anchors.bottom: parent.bottom
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: Appearance.spacing.lg
@@ -144,38 +144,77 @@ PanelWindow {
                 id: list
 
                 width: parent.width
-                implicitHeight: Math.min(contentHeight, 8 * 52)
+                implicitHeight: Math.min(contentHeight, Appearance.overlay.launcherMaxRows * Appearance.overlay.launcherRowHeight)
                 clip: true
                 model: root.results
                 currentIndex: root.selected
 
+                add: Transition {
+                    NumberAnimation {
+                        property: "opacity"
+                        from: 0
+                        to: 1
+                        duration: Appearance.overlay.contentRevealDur
+                    }
+                }
+                displaced: Transition {
+                    NumberAnimation {
+                        property: "y"
+                        duration: Appearance.overlay.filterResizeDur
+                        easing.type: Appearance.overlay.openEasing
+                    }
+                }
+
                 delegate: Rectangle {
-                    id: row
+                    id: rowItem
 
                     required property var modelData
                     required property int index
+                    readonly property bool isSelected: index === root.selected
 
                     width: ListView.view.width
-                    implicitHeight: 52
+                    implicitHeight: Appearance.overlay.launcherRowHeight
                     radius: Appearance.radius.module
-                    color: index === root.selected ? Appearance.colors.accentDim
+                    color: isSelected ? Appearance.colors.accentDim
                         : rowMouse.containsMouse ? Appearance.colors.hover
                         : "transparent"
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Appearance.anim.fast
+                        }
+                    }
 
                     Row {
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.left: parent.left
-                        anchors.leftMargin: Appearance.spacing.md
+                        anchors.leftMargin: rowItem.isSelected && !Appearance.reducedMotion
+                            ? Appearance.spacing.md + 4
+                            : Appearance.spacing.md
                         spacing: Appearance.spacing.md
+
+                        Behavior on anchors.leftMargin {
+                            NumberAnimation {
+                                duration: Appearance.anim.fast
+                                easing.type: Appearance.anim.easing
+                            }
+                        }
 
                         IconImage {
                             anchors.verticalCenter: parent.verticalCenter
                             implicitSize: 28
                             asynchronous: true
-                            source: row.modelData.icon !== ""
-                                ? Quickshell.iconPath(row.modelData.icon, true)
+                            source: rowItem.modelData.icon !== ""
+                                ? Quickshell.iconPath(rowItem.modelData.icon, true)
                                 : ""
                             visible: source !== ""
+                            scale: rowItem.isSelected && !Appearance.reducedMotion ? 1.06 : 1.0
+                            Behavior on scale {
+                                NumberAnimation {
+                                    duration: Appearance.anim.fast
+                                    easing.type: Appearance.anim.easing
+                                }
+                            }
                         }
 
                         Column {
@@ -183,18 +222,18 @@ PanelWindow {
                             spacing: 0
 
                             StyledText {
-                                text: row.modelData.name
-                                color: row.index === root.selected
+                                text: rowItem.modelData.name
+                                color: rowItem.isSelected
                                     ? Appearance.colors.accentLight
                                     : Appearance.colors.text
                             }
 
                             StyledText {
                                 visible: text !== ""
-                                width: row.width - 28 - 3 * Appearance.spacing.md
-                                text: row.modelData.comment !== ""
-                                    ? row.modelData.comment
-                                    : row.modelData.genericName
+                                width: rowItem.width - 28 - 3 * Appearance.spacing.md
+                                text: rowItem.modelData.comment !== ""
+                                    ? rowItem.modelData.comment
+                                    : rowItem.modelData.genericName
                                 font.pixelSize: Appearance.font.small
                                 color: Appearance.colors.muted
                                 elide: Text.ElideRight
@@ -209,9 +248,9 @@ PanelWindow {
                         hoverEnabled: true
                         onContainsMouseChanged: {
                             if (containsMouse)
-                                root.selected = row.index;
+                                root.selected = rowItem.index;
                         }
-                        onClicked: root.launch(row.modelData)
+                        onClicked: root.launch(rowItem.modelData)
                     }
                 }
             }
@@ -255,7 +294,7 @@ PanelWindow {
                     onTextChanged: root.recompute()
                     onAccepted: root.launch(root.results[root.selected])
 
-                    Keys.onEscapePressed: root.close()
+                    Keys.onEscapePressed: root.overlay.close()
                     Keys.onDownPressed: root.moveSelection(1)
                     Keys.onUpPressed: root.moveSelection(-1)
                     Keys.onPressed: event => {

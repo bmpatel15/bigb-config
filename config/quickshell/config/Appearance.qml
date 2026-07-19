@@ -64,4 +64,49 @@ Singleton {
         readonly property int marginTop: 6
         readonly property int marginSide: 12
     }
+
+    // Honored by the bottom overlay host: shortens durations and drops
+    // translation/scale so only opacity animates.
+    readonly property bool reducedMotion: false
+
+    // Morphing bottom-shelf overlay (launcher + wallpaper picker).
+    readonly property QtObject overlay: QtObject {
+        readonly property int marginBottom: 16
+
+        // Closed "shelf seed" the surface grows out of / collapses back to.
+        readonly property int shelfWidth: 220
+        readonly property int shelfHeight: 10
+
+        // Launcher mode geometry.
+        readonly property int launcherWidth: 600 // fixed max — restrained on ultrawide
+        readonly property int launcherRowHeight: 52
+        readonly property int launcherMaxRows: 7
+
+        // Wallpaper mode geometry.
+        readonly property int wallpaperWidth: 1180
+        readonly property int wallpaperStripHeight: 158
+        readonly property int wallpaperTileWidth: 224
+
+        // The host window is sized to the largest footprint; the surface
+        // morphs inside it.
+        readonly property int hostWidth: wallpaperWidth
+        readonly property int hostHeight: 560
+
+        // Durations (ms). Open is phased by giving each property its own
+        // duration rather than sequencing; close is quicker.
+        readonly property int openOpacityDur: 120
+        readonly property int openWidthDur: 170
+        readonly property int openHeightDur: 240
+        readonly property int closeDur: 180
+        readonly property int switchDur: 200
+        readonly property int filterResizeDur: 140
+        readonly property int contentRevealDelay: 60
+        readonly property int contentRevealDur: 180
+
+        readonly property int openEasing: Easing.OutCubic
+        readonly property int closeEasing: Easing.InCubic
+
+        // Content settle: how far rows/thumbs rise into place on reveal.
+        readonly property int liftDistance: 12
+    }
 }
