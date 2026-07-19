@@ -302,6 +302,7 @@ hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("cliphist list | rofi -dmenu | c
 -- Notification panel toggle + night light toggle
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("qs ipc call notifs toggle || swaync-client -t -sw"))
 hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("qs ipc call controlcenter toggle")) -- Quickshell control center
+hl.bind(secondMod .. " + D", hl.dsp.exec_cmd("qs ipc call dashboard toggle")) -- Quickshell dashboard
 hl.bind(secondMod .. " + N", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/nightlight.sh"))
 -- Screenshots (grim + slurp -> swappy annotate/copy/save)
 hl.bind("Print", hl.dsp.exec_cmd("$HOME/.config/hypr/scripts/screenshot.sh region"))

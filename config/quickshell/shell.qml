@@ -7,6 +7,7 @@ import qs.services
 import qs.controlcenter
 import qs.notifications
 import qs.overlay
+import qs.dashboard
 
 ShellRoot {
     Variants {
@@ -38,6 +39,13 @@ ShellRoot {
     // Single bottom-shelf host for both the launcher and wallpaper picker.
     BottomOverlayHost {
         id: overlay
+    }
+
+    LazyLoader {
+        id: dashboardLoader
+        loading: true
+
+        Dashboard {}
     }
 
     // External control surface (`qs ipc call <target> <fn>`). The hardware
@@ -107,6 +115,15 @@ ShellRoot {
 
         function toggle(): void {
             overlay.toggleMode("wallpaper");
+        }
+    }
+
+    IpcHandler {
+        target: "dashboard"
+
+        function toggle(): void {
+            if (dashboardLoader.item)
+                dashboardLoader.item.toggle();
         }
     }
 
