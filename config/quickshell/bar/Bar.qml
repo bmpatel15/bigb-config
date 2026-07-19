@@ -34,6 +34,13 @@ PanelWindow {
         id: centerIsland
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
+        calendar: calendarPanel
+    }
+
+    CalendarPanel {
+        id: calendarPanel
+        barScreen: root.screen
+        anchorWindow: root
     }
 
     MediaIsland {
