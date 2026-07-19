@@ -11,6 +11,8 @@ Singleton {
     property int cpuPerc: 0
     property int memPerc: 0
     property real memUsedGb: 0
+    property int cpuTemp: 0 // °C (coretemp package)
+    property string tempPath: ""
     property bool active: true
 
     property real lastIdle: 0
@@ -59,6 +61,23 @@ Singleton {
         printErrors: false
     }
 
+    // Resolve the coretemp package sensor once (hwmon numbers aren't stable
+    // across boots, so find it by name rather than hardcoding).
+    Process {
+        running: true
+        command: ["sh", "-c", "for h in /sys/class/hwmon/hwmon*; do [ \"$(cat \"$h/name\" 2>/dev/null)\" = coretemp ] && printf %s \"$h/temp1_input\" && exit; done"]
+        stdout: StdioCollector {
+            onStreamFinished: root.tempPath = this.text.trim()
+        }
+    }
+
+    FileView {
+        id: tempFile
+        path: root.tempPath
+        preload: false
+        printErrors: false
+    }
+
     Timer {
         interval: 3000
         repeat: true
@@ -71,6 +90,13 @@ Singleton {
             memFile.reload();
             memFile.waitForJob();
             root.parseMem(memFile.text());
+            if (root.tempPath !== "") {
+                tempFile.reload();
+                tempFile.waitForJob();
+                const t = parseInt(tempFile.text());
+                if (!isNaN(t))
+                    root.cpuTemp = Math.round(t / 1000);
+            }
         }
     }
 }

@@ -11,6 +11,14 @@ Singleton {
     property string host: ""
     property int uptimeSec: 0
 
+    readonly property string uptimeShort: {
+        const s = uptimeSec;
+        const d = Math.floor(s / 86400);
+        const h = Math.floor((s % 86400) / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        return (d > 0 ? d + "d " : "") + h + "h " + m + "m";
+    }
+
     readonly property string uptimeText: {
         const s = uptimeSec;
         const days = Math.floor(s / 86400);

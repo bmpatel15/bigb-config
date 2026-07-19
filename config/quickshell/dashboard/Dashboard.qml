@@ -44,18 +44,11 @@ PanelWindow {
     visible: shown
     anchors.top: true
     margins.top: Appearance.bar.marginTop + Appearance.bar.height + 6
-    implicitWidth: 760
-    implicitHeight: 470
+    implicitWidth: 820
+    implicitHeight: 500
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
     focusable: shown
-
-    // Run cava only while the dashboard's Overview tab is on screen.
-    Binding {
-        target: Cava
-        property: "active"
-        value: root.shown && root.tab === 0
-    }
 
     HyprlandFocusGrab {
         windows: [root]
