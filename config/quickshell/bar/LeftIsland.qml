@@ -1,9 +1,10 @@
 import QtQuick
+import Quickshell
 import Quickshell.Hyprland
 import qs.config
 import qs.components
 
-// Workspaces + submap indicator + active window title.
+// Arch mark + workspace circles + submap indicator.
 Island {
     id: root
 
@@ -22,6 +23,29 @@ Island {
             }
         }
 
+        // Arch logo — click opens the app launcher (like a start button).
+        StyledText {
+            id: archLogo
+            anchors.verticalCenter: parent.verticalCenter
+            text: "" // nf-linux-archlinux
+            font.pixelSize: Appearance.font.title
+            color: archMouse.containsMouse ? Appearance.colors.orange : Appearance.colors.peach
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: Appearance.anim.fast
+                }
+            }
+
+            MouseArea {
+                id: archMouse
+                anchors.fill: parent
+                anchors.margins: -Appearance.spacing.xs
+                hoverEnabled: true
+                onClicked: Quickshell.execDetached(["qs", "ipc", "call", "launcher", "toggle"])
+            }
+        }
+
         Workspaces {
             anchors.verticalCenter: parent.verticalCenter
             barScreen: root.barScreen
@@ -32,15 +56,6 @@ Island {
             visible: root.submap !== ""
             text: root.submap
             color: Appearance.colors.mauve
-        }
-
-        StyledText {
-            anchors.verticalCenter: parent.verticalCenter
-            visible: text !== ""
-            text: Hyprland.activeToplevel?.title ?? ""
-            color: Appearance.colors.peach
-            width: Math.min(implicitWidth, 420)
-            elide: Text.ElideRight
         }
     }
 }
