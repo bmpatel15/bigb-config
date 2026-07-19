@@ -125,7 +125,13 @@ hl.config({
 		rounding = 10,
 		rounding_power = 2,
 
-		-- Change transparency of focused and unfocused windows
+		-- Transparency of focused/unfocused windows. Keep these at 1.0.
+		-- These alpha the ENTIRE window surface, text glyphs included, so a
+		-- terminal at 0.70 has its foreground wash into the wallpaper and the
+		-- window looks like it vanished. Terminal transparency belongs in
+		-- ghostty's `background-opacity` (see config/ghostty/config), which
+		-- only affects the background and keeps glyphs opaque.
+		-- To dim a specific non-terminal app, use a targeted window_rule.
 		active_opacity = 1.0,
 		inactive_opacity = 1.0,
 

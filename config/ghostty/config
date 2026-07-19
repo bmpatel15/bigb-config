@@ -16,6 +16,17 @@ cursor-style-blink = true
 window-padding-x = 14
 window-padding-y = 14
 
+# Transparency — do this HERE, not via Hyprland's decoration:active_opacity.
+# Compositor opacity alphas the whole window surface including glyphs, so text
+# washes into the wallpaper and the window reads as "gone". background-opacity
+# only touches the background and leaves glyphs fully opaque.
+# Keep hyprland.lua's active_opacity/inactive_opacity at 1.0.
+background-opacity = 0.85
+
+# Cells with an explicit background color stay opaque (this is the default;
+# stated explicitly so it isn't lost later).
+background-opacity-cells = false
+
 # Copy/paste — paired with Hyprland SUPER+C/SUPER+V (-> Ctrl+Insert / Shift+Insert).
 # Ghostty's default shift+insert pastes the PRIMARY selection; override it to the
 # clipboard so SUPER+V pastes exactly what SUPER+C copied.
