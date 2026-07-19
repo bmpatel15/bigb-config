@@ -39,14 +39,14 @@ Row {
             readonly property bool occupied: slot.ws !== null && !slot.isActive
 
             anchors.verticalCenter: parent.verticalCenter
-            width: 16
-            height: 16
+            width: 14
+            height: 14
 
             Rectangle {
                 id: dot
 
                 anchors.centerIn: parent
-                width: slot.isActive ? 14 : 11
+                width: slot.isActive ? 11 : 9
                 height: width
                 radius: width / 2
 

@@ -28,7 +28,7 @@ Island {
             id: archLogo
             anchors.verticalCenter: parent.verticalCenter
             text: "" // nf-linux-archlinux
-            font.pixelSize: Appearance.font.title
+            font.pixelSize: Appearance.font.large
             color: archMouse.containsMouse ? Appearance.colors.orange : Appearance.colors.peach
 
             Behavior on color {
