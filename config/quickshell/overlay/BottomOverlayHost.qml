@@ -94,7 +94,7 @@ PanelWindow {
         radius: Appearance.radius.island
         // Translucent enough for the Hyprland background blur to read as
         // frosted glass while keeping text legible over bright wallpapers.
-        color: Qt.rgba(6 / 255, 11 / 255, 30 / 255, 0.6)
+        color: Qt.rgba(6 / 255, 11 / 255, 30 / 255, 0.7)
         border.width: 1
         border.color: Appearance.colors.border
 
