@@ -97,8 +97,8 @@ Singleton {
         readonly property int openOpacityDur: 120
         readonly property int openWidthDur: 170
         readonly property int openHeightDur: 240
-        readonly property int closeDur: 180
-        readonly property int switchDur: 200
+        readonly property int closeDur: 210
+        readonly property int switchDur: 260
         readonly property int filterResizeDur: 140
         readonly property int contentRevealDelay: 60
         readonly property int contentRevealDur: 180
@@ -108,5 +108,14 @@ Singleton {
 
         // Content settle: how far rows/thumbs rise into place on reveal.
         readonly property int liftDistance: 12
+
+        // Smooth reveal — done with GPU transforms (scale/opacity/translate)
+        // instead of animating width/height, so there is no per-frame
+        // relayout or input-mask churn. Cubic-bezier control points.
+        readonly property real revealScale: 0.955
+        readonly property int revealLift: 18
+        readonly property int openDur: 300
+        readonly property var openCurve: [0.16, 1, 0.3, 1, 1, 1] // easeOutExpo
+        readonly property var closeCurve: [0.32, 0, 0.67, 0, 1, 1] // easeInCubic
     }
 }

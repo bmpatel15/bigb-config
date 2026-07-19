@@ -13,14 +13,16 @@ PanelWindow {
 
     // "" (closed) | "launcher" | "wallpaper"
     property string mode: ""
-    readonly property bool shown: mode !== ""
+    readonly property bool open: mode !== ""
+    // Sticky: which mode's size/content the surface renders. Not cleared on
+    // close, so the surface keeps its geometry while it animates out (the
+    // reveal is a transform, not a resize).
+    property string renderMode: "launcher"
     // Keeps the window mapped through the closing animation.
     property bool rendering: false
 
-    readonly property Item activeContent: mode === "wallpaper" ? wallpaperContent : launcherContent
-    readonly property int openWidth: mode === "wallpaper"
-        ? Appearance.overlay.wallpaperWidth
-        : Appearance.overlay.launcherWidth
+    readonly property Item activeContent: mode === "wallpaper" ? wallpaperContent
+        : mode === "launcher" ? launcherContent : null
 
     function focusedScreen() {
         const n = Hyprland.focusedMonitor?.name;
@@ -38,6 +40,7 @@ PanelWindow {
                 screen = s;
             rendering = true;
         }
+        renderMode = m;
         mode = m;
     }
 
@@ -88,28 +91,61 @@ PanelWindow {
         border.width: 1
         border.color: Appearance.colors.border
 
-        width: host.shown ? host.openWidth : Appearance.overlay.shelfWidth
-        height: host.shown ? host.activeContent.desiredHeight : Appearance.overlay.shelfHeight
-        opacity: host.shown ? 1 : 0
+        // Size follows the sticky render mode; animates only on a mode
+        // switch (and launcher filter resize) — NOT during open/close.
+        width: host.renderMode === "wallpaper"
+            ? Appearance.overlay.wallpaperWidth
+            : Appearance.overlay.launcherWidth
+        height: host.renderMode === "wallpaper"
+            ? wallpaperContent.desiredHeight
+            : launcherContent.desiredHeight
 
         Behavior on width {
             NumberAnimation {
-                duration: host.shown ? Appearance.overlay.openWidthDur : Appearance.overlay.closeDur
-                easing.type: host.shown ? Appearance.overlay.openEasing : Appearance.overlay.closeEasing
+                duration: Appearance.overlay.switchDur
+                easing.type: Easing.Bezier
+                easing.bezierCurve: Appearance.overlay.openCurve
             }
         }
         Behavior on height {
             NumberAnimation {
-                duration: host.shown ? Appearance.overlay.openHeightDur : Appearance.overlay.closeDur
-                easing.type: host.shown ? Appearance.overlay.openEasing : Appearance.overlay.closeEasing
-                // Unmap only once the collapse animation has finished.
-                onRunningChanged: if (!running && !host.shown) host.rendering = false
+                duration: Appearance.overlay.switchDur
+                easing.type: Easing.Bezier
+                easing.bezierCurve: Appearance.overlay.openCurve
             }
         }
+
+        // Open/close reveal — GPU transforms only (no relayout, no mask
+        // churn): grow from the bottom-center shelf point, fade, and rise.
+        transformOrigin: Item.Bottom
+        opacity: host.open ? 1 : 0
+        scale: (host.open || Appearance.reducedMotion) ? 1 : Appearance.overlay.revealScale
+
+        transform: Translate {
+            y: (host.open || Appearance.reducedMotion) ? 0 : Appearance.overlay.revealLift
+            Behavior on y {
+                NumberAnimation {
+                    duration: host.open ? Appearance.overlay.openDur : Appearance.overlay.closeDur
+                    easing.type: Easing.Bezier
+                    easing.bezierCurve: host.open ? Appearance.overlay.openCurve : Appearance.overlay.closeCurve
+                }
+            }
+        }
+
         Behavior on opacity {
             NumberAnimation {
-                duration: host.shown ? Appearance.overlay.openOpacityDur : Appearance.overlay.closeDur
-                easing.type: host.shown ? Appearance.overlay.openEasing : Appearance.overlay.closeEasing
+                duration: host.open ? Appearance.overlay.openDur : Appearance.overlay.closeDur
+                easing.type: Easing.Bezier
+                easing.bezierCurve: host.open ? Appearance.overlay.openCurve : Appearance.overlay.closeCurve
+                // Unmap only once the collapse animation has finished.
+                onRunningChanged: if (!running && !host.open) host.rendering = false
+            }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: host.open ? Appearance.overlay.openDur : Appearance.overlay.closeDur
+                easing.type: Easing.Bezier
+                easing.bezierCurve: host.open ? Appearance.overlay.openCurve : Appearance.overlay.closeCurve
             }
         }
 
