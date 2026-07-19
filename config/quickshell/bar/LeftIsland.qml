@@ -46,6 +46,12 @@ Island {
             }
         }
 
+        // Breathing room between the Arch logo and the workspace circles.
+        Item {
+            width: Appearance.spacing.sm
+            height: 1
+        }
+
         Workspaces {
             anchors.verticalCenter: parent.verticalCenter
             barScreen: root.barScreen
