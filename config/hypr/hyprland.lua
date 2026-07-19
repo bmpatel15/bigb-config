@@ -430,6 +430,16 @@ hl.window_rule({
 -- })
 -- overlayLayerRule:set_enabled(false)
 
+-- Frosted-glass blur behind the Quickshell launcher / wallpaper picker.
+-- The shell gives that one window the "shell-overlay" namespace (its surface
+-- fill is translucent); ignore_alpha skips the window's transparent margins.
+hl.layer_rule({
+	name = "blur-shell-overlay",
+	match = { namespace = "^shell-overlay$" },
+	blur = true,
+	ignore_alpha = 0.1,
+})
+
 -- Hyprland-run windowrule
 hl.window_rule({
 	name = "move-hyprland-run",

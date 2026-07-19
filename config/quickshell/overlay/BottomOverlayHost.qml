@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.config
 
@@ -54,6 +55,10 @@ PanelWindow {
     implicitWidth: Appearance.overlay.hostWidth
     implicitHeight: Appearance.overlay.hostHeight
     color: "transparent"
+    // Distinct layer namespace so the Hyprland blur layer_rule
+    // (config/hypr/hyprland.lua) scopes to this overlay only, not the bar
+    // or the other quickshell panels.
+    WlrLayershell.namespace: "shell-overlay"
     // Never reserve desktop space.
     exclusionMode: ExclusionMode.Ignore
     // Only request keyboard while mapped.
@@ -87,7 +92,9 @@ PanelWindow {
         anchors.horizontalCenter: parent.horizontalCenter
         clip: true
         radius: Appearance.radius.island
-        color: Qt.rgba(6 / 255, 11 / 255, 30 / 255, 0.96)
+        // Translucent enough for the Hyprland background blur to read as
+        // frosted glass while keeping text legible over bright wallpapers.
+        color: Qt.rgba(6 / 255, 11 / 255, 30 / 255, 0.6)
         border.width: 1
         border.color: Appearance.colors.border
 
