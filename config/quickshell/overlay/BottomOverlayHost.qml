@@ -116,21 +116,45 @@ PanelWindow {
         }
 
         // Open/close reveal — GPU transforms only (no relayout, no mask
-        // churn): grow from the bottom-center shelf point, fade, and rise.
-        transformOrigin: Item.Bottom
+        // churn). A non-uniform Scale from the bottom-center shelf point
+        // makes the panel UNFOLD upward: short + slightly narrow → full.
+        // The content is bottom-anchored, so the search bar stays put while
+        // the results stretch open above it.
         opacity: host.open ? 1 : 0
-        scale: (host.open || Appearance.reducedMotion) ? 1 : Appearance.overlay.revealScale
 
-        transform: Translate {
-            y: (host.open || Appearance.reducedMotion) ? 0 : Appearance.overlay.revealLift
-            Behavior on y {
-                NumberAnimation {
-                    duration: host.open ? Appearance.overlay.openDur : Appearance.overlay.closeDur
-                    easing.type: Easing.Bezier
-                    easing.bezierCurve: host.open ? Appearance.overlay.openCurve : Appearance.overlay.closeCurve
+        transform: [
+            Scale {
+                origin.x: surface.width / 2
+                origin.y: surface.height
+                xScale: (host.open || Appearance.reducedMotion) ? 1 : Appearance.overlay.revealScaleX
+                yScale: (host.open || Appearance.reducedMotion) ? 1 : Appearance.overlay.revealScaleY
+
+                Behavior on xScale {
+                    NumberAnimation {
+                        duration: host.open ? Appearance.overlay.openDur : Appearance.overlay.closeDur
+                        easing.type: Easing.Bezier
+                        easing.bezierCurve: host.open ? Appearance.overlay.openCurve : Appearance.overlay.closeCurve
+                    }
+                }
+                Behavior on yScale {
+                    NumberAnimation {
+                        duration: host.open ? Appearance.overlay.openDur : Appearance.overlay.closeDur
+                        easing.type: Easing.Bezier
+                        easing.bezierCurve: host.open ? Appearance.overlay.openCurve : Appearance.overlay.closeCurve
+                    }
+                }
+            },
+            Translate {
+                y: (host.open || Appearance.reducedMotion) ? 0 : Appearance.overlay.revealLift
+                Behavior on y {
+                    NumberAnimation {
+                        duration: host.open ? Appearance.overlay.openDur : Appearance.overlay.closeDur
+                        easing.type: Easing.Bezier
+                        easing.bezierCurve: host.open ? Appearance.overlay.openCurve : Appearance.overlay.closeCurve
+                    }
                 }
             }
-        }
+        ]
 
         Behavior on opacity {
             NumberAnimation {
@@ -139,13 +163,6 @@ PanelWindow {
                 easing.bezierCurve: host.open ? Appearance.overlay.openCurve : Appearance.overlay.closeCurve
                 // Unmap only once the collapse animation has finished.
                 onRunningChanged: if (!running && !host.open) host.rendering = false
-            }
-        }
-        Behavior on scale {
-            NumberAnimation {
-                duration: host.open ? Appearance.overlay.openDur : Appearance.overlay.closeDur
-                easing.type: Easing.Bezier
-                easing.bezierCurve: host.open ? Appearance.overlay.openCurve : Appearance.overlay.closeCurve
             }
         }
 

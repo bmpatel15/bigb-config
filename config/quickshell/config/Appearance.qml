@@ -109,12 +109,15 @@ Singleton {
         // Content settle: how far rows/thumbs rise into place on reveal.
         readonly property int liftDistance: 12
 
-        // Smooth reveal — done with GPU transforms (scale/opacity/translate)
-        // instead of animating width/height, so there is no per-frame
-        // relayout or input-mask churn. Cubic-bezier control points.
-        readonly property real revealScale: 0.955
-        readonly property int revealLift: 18
-        readonly property int openDur: 300
+        // Dramatic unfold — GPU transforms only (no per-frame relayout or
+        // input-mask churn). A non-uniform Scale from the bottom-center
+        // shelf point makes the panel start short + slightly narrow and
+        // stretch tall; opacity and a small lift ride along. Cubic-bezier
+        // control points.
+        readonly property real revealScaleY: 0.42 // vertical: short shelf → full
+        readonly property real revealScaleX: 0.88 // horizontal: slight
+        readonly property int revealLift: 14
+        readonly property int openDur: 320
         readonly property var openCurve: [0.16, 1, 0.3, 1, 1, 1] // easeOutExpo
         readonly property var closeCurve: [0.32, 0, 0.67, 0, 1, 1] // easeInCubic
     }
