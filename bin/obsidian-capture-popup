@@ -13,9 +13,15 @@ if hyprctl clients 2>/dev/null | grep -qE "^[[:space:]]*class: ${CLASS//./\\.}$"
 	exit 0
 fi
 
+# Deliberately more transparent than config/ghostty/config's 0.85: this is a
+# transient capture popup, so it reads better as frosted glass floating over the
+# wallpaper than as another solid terminal. Hyprland's global blur (hyprland.lua
+# decoration.blur) does the frosting; this value controls how much wallpaper
+# reaches it. Push it back toward 1.0 and the blur disappears — at 0.95 there is
+# only 5% of backdrop left to blur and the window reads as a flat opaque panel.
 exec ghostty \
 	--class="$CLASS" \
 	--title="Obsidian Quick Capture" \
 	--gtk-single-instance=false \
-	--background-opacity=0.95 \
+	--background-opacity=0.78 \
 	-e "$HOME/.local/bin/obsidian-capture"
