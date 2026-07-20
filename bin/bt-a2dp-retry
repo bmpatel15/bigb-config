@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+"""Recover the Bose QC Ultra 2 from a BlueZ AVDTP discovery race (bluez 5.87).
+
+When the headset initiates the connection, bluetoothd cannot load its cached
+stream-endpoint list ("load_remote_sep: rseid 6 not found") and falls back to a
+full AVDTP discovery, which takes ~6s. Meanwhile plugins/policy.c arms a 2s
+timer (SINK_RETRY_TIMEOUT) and calls btd_service_connect(a2dp-sink) while that
+discovery is still in flight. avdtp_discover() rejects it:
+
+    if (session->discover)
+            return -EBUSY;
+
+and because SINK_RETRIES == 1, BlueZ gives up permanently. Result: the device
+reports Connected, AVRCP and the mic work, but there is no MediaTransport1 and
+therefore no audio — which is why a manual disconnect/reconnect (host-initiated,
+only one discovery in flight) has always fixed it.
+
+This watches Device1.Connected and, if no MediaTransport1 shows up within the
+grace period, retries cheapest-action-first. It stands down completely the
+moment the device disconnects, so a disconnect you asked for stays done.
+"""
+
+import logging
+import sys
+
+import dbus
+import dbus.mainloop.glib
+from gi.repository import GLib
+
+MAC = "E4:58:BC:D5:3C:D6"
+DEV = "/org/bluez/hci0/dev_" + MAC.replace(":", "_")
+
+GRACE_SECONDS = 12    # healthy path measured at ~6s (14:00:23 -> 14:00:29), plus margin
+SETTLE_SECONDS = 8    # after a repair attempt, before re-checking
+DISCONNECT_WAIT = 6   # observed manual recovery gap was 5-8s
+MAX_ROUNDS = 2
+
+log = logging.getLogger("bt-a2dp-retry")
+
+
+class Recovery:
+    def __init__(self, bus):
+        self.bus = bus
+        self.timer = None
+        self.round = 0
+        # True while we are mid-repair, so our own Disconnect/Connect signals are
+        # not mistaken for the user toggling the headset. See on_disconnected().
+        self.recovering = False
+
+    # ---------- D-Bus helpers ----------
+
+    def _iface(self, name):
+        return dbus.Interface(self.bus.get_object("org.bluez", DEV), name)
+
+    def is_connected(self):
+        try:
+            props = self._iface("org.freedesktop.DBus.Properties")
+            return bool(props.Get("org.bluez.Device1", "Connected"))
+        except dbus.DBusException:
+            return False
+
+    def has_transport(self):
+        """True when a *usable* A2DP transport exists.
+
+        Requires the transport to hang off a stream endpoint (.../sepN/fdN), not
+        merely to exist somewhere under the device. This distinction is the whole
+        game, and it is measured rather than assumed:
+
+            broken   .../dev_E4_58_BC_D5_3C_D6/fd0        Acquire -> NotAuthorized
+            healthy  .../dev_E4_58_BC_D5_3C_D6/sep6/fd0   Acquire -> ok
+
+        When the EBUSY race kills AVDTP configuration, BlueZ still publishes a
+        MediaTransport1 object -- just an orphaned one with no SEP behind it.
+        WirePlumber then sets the card profile to a2dp-sink and creates a sink
+        that looks entirely correct, so every surface-level check (profile,
+        codec, default sink, transport presence) reports healthy while the
+        device plays nothing at all.
+
+        The failure only surfaces when something tries to play: PipeWire calls
+        Acquire(), BlueZ answers NotAuthorized, and the node drops to error and
+        back to suspended. That is far too late and too transient to poll for,
+        hence keying on the path shape instead.
+
+        Deliberately does not test State: an idle transport is legitimately
+        "idle" during ordinary silence.
+        """
+        try:
+            om = dbus.Interface(
+                self.bus.get_object("org.bluez", "/"),
+                "org.freedesktop.DBus.ObjectManager",
+            )
+            for path, ifaces in om.GetManagedObjects().items():
+                if str(path).startswith(DEV + "/sep") and \
+                        "org.bluez.MediaTransport1" in ifaces:
+                    return True
+        except dbus.DBusException as exc:
+            log.warning("transport probe failed: %s", exc)
+        return False
+
+    # ---------- timers ----------
+
+    def cancel(self):
+        if self.timer is not None:
+            GLib.source_remove(self.timer)
+            self.timer = None
+
+    def arm(self, seconds, callback):
+        self.cancel()
+        self.timer = GLib.timeout_add_seconds(seconds, callback)
+
+    # ---------- state transitions ----------
+    #
+    # self.recovering is what keeps the two halves of a repair from tripping over
+    # each other. Recovery necessarily disconnects the device, which produces the
+    # exact same Connected=false/true signals a user toggling the headset does.
+    # Without the flag:
+    #   - on_disconnected() cancels the pending reconnect, stranding the device
+    #     (observed 14:37:58 -> 14:38:00: it disconnected and never came back), and
+    #   - on_connected() resets self.round, so MAX_ROUNDS never bounds anything and
+    #     a device that cannot be repaired is disconnected/reconnected forever.
+
+    def on_connected(self):
+        if self.recovering:
+            # Our own Connect() landing. Stay in the current episode so the round
+            # counter keeps counting and the retry stays bounded.
+            log.info("reconnected; re-checking in %ds", SETTLE_SECONDS)
+            self.arm(SETTLE_SECONDS, self.check)
+            return
+        log.info("device connected; waiting %ds for A2DP transport", GRACE_SECONDS)
+        self.round = 0
+        self.arm(GRACE_SECONDS, self.check)
+
+    def on_disconnected(self):
+        if self.recovering:
+            # Our own Disconnect(). The reconnect timer is already armed; leave it.
+            log.info("our own disconnect; reconnect pending")
+            return
+        # Someone else dropped the link, quite possibly the user. Stand down
+        # entirely rather than "helpfully" dragging the device back.
+        log.info("device disconnected; standing down")
+        self.cancel()
+        self.round = 0
+
+    def finish(self, message, level=log.info):
+        level(message)
+        self.recovering = False
+        self.round = 0
+
+    def check(self):
+        self.timer = None
+        if not self.is_connected():
+            if self.recovering:
+                # Mid-repair and the device is gone: recover our own mess rather
+                # than leaving the headset disconnected. Bounded by the same round
+                # counter -- if the user powered the headset off while we were
+                # repairing, Connect() will keep failing and this would otherwise
+                # retry forever.
+                self.round += 1
+                if self.round > MAX_ROUNDS:
+                    self.finish("device gone mid-recovery; giving up", log.error)
+                    return False
+                log.warning("disconnected mid-recovery; reconnecting (%d/%d)",
+                            self.round, MAX_ROUNDS)
+                self.reconnect()
+                return False
+            self.finish("no longer connected; nothing to do")
+            return False
+
+        if self.has_transport():
+            self.finish("A2DP transport present; healthy")
+            return False
+
+        self.round += 1
+        if self.round > MAX_ROUNDS:
+            self.finish(
+                "giving up after %d recovery rounds; device left connected"
+                % MAX_ROUNDS,
+                log.error,
+            )
+            return False
+
+        self.repair()
+        return False
+
+    def repair(self):
+        # Straight to disconnect/reconnect. ConnectProfile(a2dp-sink) was tried
+        # here first and is structurally useless: the device is already connected,
+        # so BlueZ refuses with org.bluez.Error.Failed: br-connection-busy
+        # (observed 14:37:50). It only added 8s of silence before the real fix.
+        log.warning("no A2DP transport; repair %d/%d: Disconnect + Connect",
+                    self.round, MAX_ROUNDS)
+        self.recovering = True
+        try:
+            self._iface("org.bluez.Device1").Disconnect()
+        except dbus.DBusException as exc:
+            log.warning("Disconnect failed: %s", exc)
+            self.arm(SETTLE_SECONDS, self.check)
+            return
+        self.arm(DISCONNECT_WAIT, self.reconnect)
+
+    def reconnect(self):
+        self.timer = None
+        log.info("reconnecting (host-initiated)")
+        try:
+            self._iface("org.bluez.Device1").Connect()
+        except dbus.DBusException as exc:
+            log.warning("Connect failed: %s", exc)
+        # Backstop: if Connect() produced no Connected=true signal, this timer
+        # still fires check(), so the episode can never hang half-finished.
+        self.arm(SETTLE_SECONDS, self.check)
+        return False
+
+
+def main():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s %(message)s",
+        stream=sys.stderr,
+    )
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    bus = dbus.SystemBus()
+    rec = Recovery(bus)
+
+    def on_props(interface, changed, invalidated, path=None):
+        if interface != "org.bluez.Device1" or path != DEV:
+            return
+        if "Connected" not in changed:
+            return
+        if bool(changed["Connected"]):
+            rec.on_connected()
+        else:
+            rec.on_disconnected()
+
+    bus.add_signal_receiver(
+        on_props,
+        dbus_interface="org.freedesktop.DBus.Properties",
+        signal_name="PropertiesChanged",
+        arg0="org.bluez.Device1",
+        path_keyword="path",
+    )
+
+    # Covers a service restart while the headset is already connected and stuck.
+    if rec.is_connected() and not rec.has_transport():
+        log.info("startup: connected without transport")
+        rec.on_connected()
+
+    log.info("watching %s", DEV)
+    GLib.MainLoop().run()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,26 @@
+[Unit]
+Description=Recover Bose QC Ultra 2 A2DP after the BlueZ AVDTP discovery race
+Documentation=man:bluetoothd(8)
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/bt-a2dp-retry
+Restart=always
+RestartSec=5
+
+# Only needs to talk to the system bus and read its own script.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=default.target
