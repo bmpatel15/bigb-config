@@ -22,9 +22,12 @@ Singleton {
     readonly property string wallpaperStateFile: cacheDir + "/wallpaper-picker/current"
 
     // Command argv arrays
-    readonly property var brightnessGetCmd: ["brightnessctl", "-m"]
+    // -c backlight: without it brightnessctl falls back to the first `leds` device
+    // (NIC/keyboard LEDs) on desktops with no panel, which makes Brightness.available
+    // true and points the slider at an LED. Scoped, it exits non-zero -> cell hidden.
+    readonly property var brightnessGetCmd: ["brightnessctl", "-c", "backlight", "-m"]
     function brightnessSetCmd(spec) {
-        return ["brightnessctl", "-e4", "-n2", "-m", "set", spec];
+        return ["brightnessctl", "-c", "backlight", "-e4", "-n2", "-m", "set", spec];
     }
     readonly property var powerProfileGetCmd: ["powerprofilesctl", "get"]
     function powerProfileSetCmd(profile) {
