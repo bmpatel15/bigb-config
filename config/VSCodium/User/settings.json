@@ -1,0 +1,30 @@
+{
+  // Theme — from the vendored ethereal-omarchy extension (matches Omarchy Ethereal desktop)
+  "workbench.colorTheme": "Ethereal",
+
+  // Status bar: bar = editor background, icons/text = peach foreground (scoped to Ethereal).
+  // Overrides the theme's lavender/pink status bar so the icons don't blend in.
+  "workbench.colorCustomizations": {
+    "[Ethereal]": {
+      "statusBar.background": "#060B1E",
+      "statusBar.foreground": "#ffcead",
+      "statusBar.noFolderBackground": "#060B1E",
+      "statusBar.noFolderForeground": "#ffcead",
+      "statusBar.border": "#131a3c"
+    }
+  },
+
+  // Font — JetBrainsMono Nerd Font, matching Ghostty / Waybar / Neovim / tmux
+  "editor.fontFamily": "JetBrainsMono Nerd Font, monospace",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 14,
+  "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font",
+  "terminal.integrated.fontSize": 13,
+
+  // Sensible minimal-chrome defaults
+  "workbench.startupEditor": "none",
+  "editor.minimap.enabled": false,
+  "window.menuBarVisibility": "toggle",
+  "editor.cursorBlinking": "smooth",
+  "editor.renderWhitespace": "boundary"
+}

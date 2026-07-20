@@ -9,6 +9,7 @@
 #   ./install.sh sync     pull live app-managed configs from ~ -> repo (before commit)
 #   ./install.sh sync-packages  regenerate packages/{pacman,aur}.txt from installed packages
 #   ./install.sh ethereal rebuild the Ethereal-Papirus icons + KDE color scheme (setup/ethereal-kde.sh)
+#   ./install.sh vscodium link VSCodium settings + vendored Ethereal theme extension
 #   ./install.sh ly       ly display manager: boot autologin + Ethereal greeter (sudo; setup/ly-setup.sh)
 #   ./install.sh blueman  disable blueman's tray icon (waybar's bluetooth module replaces it)
 #   ./install.sh hermes   install the Hermes agent (needed by qc-process)
@@ -104,6 +105,28 @@ sync_copies() {
 setup_ethereal_kde() {
     log "Ethereal KDE theming (Dolphin icons + color scheme)"
     bash "$DOTS/setup/ethereal-kde.sh"
+}
+
+setup_vscodium() { # link settings + install the vendored Ethereal theme (from its .vsix)
+    log "VSCodium (Ethereal theme + settings)"
+    local vdir="$DOTS/config/VSCodium"
+    [[ -e "$vdir/User/settings.json" ]] || { info "skip: no VSCodium config in repo"; return 0; }
+    # settings.json links fine (a file); the whole ~/.config/VSCodium dir is NOT linked (it holds state).
+    mkdir -p "$HOME/.config/VSCodium/User"
+    link "$vdir/User/settings.json" "$HOME/.config/VSCodium/User/settings.json"
+
+    # Theme: modern VSCodium only loads *installed* extensions — it ignores unpacked/symlinked
+    # folders dropped in the extensions dir — so install the vendored theme from its prebuilt .vsix.
+    command -v codium >/dev/null || { info "skip theme: codium not installed"; return 0; }
+    if codium --list-extensions 2>/dev/null | grep -qix 'bjarne.ethereal-omarchy'; then
+        info "ok: Ethereal theme already installed"; return 0
+    fi
+    local vsix="$vdir/extensions/ethereal-omarchy.vsix"
+    if [[ -f "$vsix" ]] && codium --install-extension "$vsix" --force >/dev/null 2>&1; then
+        info "installed: Ethereal theme (restart VSCodium to apply)"
+    else
+        info "theme install failed — run manually: codium --install-extension \"$vsix\" --force"
+    fi
 }
 
 setup_ly() { # ly display manager: boot autologin + Ethereal greeter (root-level /etc pass)
@@ -245,12 +268,13 @@ main() {
         sync)    sync_copies ;;
         sync-packages) sync_packages ;;
         ethereal) setup_ethereal_kde ;;
+        vscodium) setup_vscodium ;;
         ly)      setup_ly ;;
         blueman) setup_blueman ;;
         hermes)  install_hermes ;;
         argus)   setup_argus ;;
         pkm)     setup_pkm ;;
-        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_ethereal_kde; setup_blueman; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; setup_pkm; enable_timers
+        all)     install_packages; link_configs; setup_tmux; restore_copies; setup_ethereal_kde; setup_vscodium; setup_blueman; setup_omz; set_shell; install_font; install_claude; install_hermes; setup_argus; setup_pkm; enable_timers
                  log "Done"
                  cat <<'EOF'
 
@@ -273,7 +297,7 @@ main() {
         theming env (config/uwsm/env — needed for Dolphin) take effect.
 EOF
                  ;;
-        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|ethereal|ly|blueman|hermes|argus|pkm]" >&2; exit 1 ;;
+        *) echo "usage: $0 [all|links|tmux|restore|sync|sync-packages|ethereal|vscodium|ly|blueman|hermes|argus|pkm]" >&2; exit 1 ;;
     esac
 }
 main "$@"

@@ -1,0 +1,25 @@
+{
+    "name": "ethereal-omarchy",
+    "displayName": "Ethereal Omarchy",
+    "description": "Ethereal vscode theme",
+    "publisher": "Bjarne",
+    "homepage": "https://github.com/bjarneo/ethereal-vscode",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/bjarneo/ethereal-vscode.git"
+    },
+    "version": "1.0.0",
+    "engines": {
+        "vscode": "^1.70.0"
+    },
+    "categories": ["Themes"],
+    "contributes": {
+        "themes": [
+            {
+                "label": "Ethereal",
+                "uiTheme": "vs-dark",
+                "path": "./themes/ethereal-color-theme.json"
+            }
+        ]
+    }
+}

@@ -13,6 +13,7 @@ One script (`install.sh`) turns a **plain Arch base install** into this full des
 - **Hyprland** Wayland desktop — Waybar (bar), Rofi (launcher), swaync (notifications), hypridle + hyprlock (idle/lock), wlogout (power menu), `uwsm` session manager.
 - **Ghostty** terminal + **zsh** (oh-my-zsh + powerlevel10k + fzf-tab/autosuggestions/syntax-highlighting).
 - **Neovim** (LazyVim, Ethereal colorscheme), **tmux** (Ethereal, TPM plugins), **yazi** file manager.
+- **VSCodium** editor, Ethereal-themed (vendored `Ethereal` color theme + JetBrainsMono Nerd Font).
 - **PipeWire** audio, **NetworkManager**, `xdg-desktop-portal-hyprland`, grim/slurp screenshots, Bibata cursor, **Chromium** (with per-mode profiles + Ethereal theme).
 - **Dolphin** file manager, fully Ethereal-themed: `EtherealDark` KDE color scheme, **Ethereal-Papirus** icons (Papirus folders recolored to the accent), Breeze widgets, and a minimal Places sidebar (Desktop / Downloads / Projects / Config / Trash).
 - **Claude Code** CLI, and `system-maintenance` + `qc-process` user timers.
@@ -141,7 +142,8 @@ ly-status        # read-only diagnostic (services, autologin arming, config sani
 
 Two strategies, chosen per app by whether the app rewrites its own config file:
 
-- **LINKED** (`hypr`, `ghostty`, `waybar`, `rofi`, `nvim`, `tmux`, `yazi`, `swaync`, `zathura`, `wlogout`, `systemd`, Claude Code commands/settings, plus `.zshrc`, `.p10k.zsh`, `.gitconfig`) — `~/.config/<x>` is a **symlink into this repo**, so hand-edits auto-track. **Edit in place, then `git commit`.**
+- **LINKED** (`hypr`, `ghostty`, `waybar`, `rofi`, `nvim`, `tmux`, `yazi`, `swaync`, `zathura`, `wlogout`, `systemd`, Claude Code commands/settings, VSCodium settings + Ethereal theme extension, plus `.zshrc`, `.p10k.zsh`, `.gitconfig`) — `~/.config/<x>` is a **symlink into this repo**, so hand-edits auto-track. **Edit in place, then `git commit`.**
+  > VSCodium: only `User/settings.json` is symlinked (the whole `~/.config/VSCodium` dir is **not** — it holds runtime state). The Ethereal theme is a vendored extension **installed from `config/VSCodium/extensions/ethereal-omarchy.vsix`** (modern VSCodium ignores unpacked/symlinked extension folders), not a symlink. `./install.sh vscodium` does both. If VSCodium's GUI settings editor detaches the `settings.json` symlink, re-run `./install.sh vscodium` and reconcile with `git diff` (same caveat as Claude Code's `settings.json`).
   > If Claude Code's `/config` UI ever replaces `~/.claude/settings.json` with a plain file (detaching the symlink), re-run `./install.sh links` and `git diff` to reconcile.
 - **COPIED** (`gtk-3.0`, `gtk-4.0`, `nwg-look`, `xsettingsd`, `btop`, `mimeapps.list`, `dolphinrc`, `kdeglobals`, `pavucontrol.ini`) — these apps rewrite the file via temp-file+rename, which would detach a symlink, so they're tracked as **copies**. After changing one in its app, run `./install.sh sync` to pull the live version back into the repo before committing.
 
@@ -159,6 +161,7 @@ Two strategies, chosen per app by whether the app rewrites its own config file:
 ./install.sh sync           # pull live COPIED configs from ~ -> repo (before a commit)
 ./install.sh sync-packages  # regenerate packages/{pacman,aur}.txt from installed packages
 ./install.sh ethereal       # rebuild Ethereal-Papirus icons + EtherealDark color scheme
+./install.sh vscodium       # link VSCodium settings + vendored Ethereal theme extension
 ./install.sh hermes         # install the Hermes agent (needed by qc-process)
 ./install.sh argus          # clone the argus repo + link ~/.local/bin/argus
 ./install.sh pkm            # link the PKM note-processing commands + daily-routine greeter (+ deps/vault check)
