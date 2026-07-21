@@ -30,7 +30,7 @@ BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .zprofile .p10k.zsh .gitconfig)
 LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf fastfetch uwsm quickshell swayimg)
-LINK_BIN=(obsidian-capture obsidian-capture-popup qc-process ly-status)
+LINK_BIN=(obsidian-capture obsidian-capture-popup qc-process ly-status image-list)
 # PKM note-processing commands + daily-routine greeter (vault: ~/Documents/BigB-PKM).
 LINK_BIN_PKM=(today-note ot rollover on og sn tasks week-note obs pkm-daily)
 # Desktop entries -> ~/.local/share/applications. These override same-named files in
@@ -62,6 +62,9 @@ link_configs() {
     mkdir -p "$HOME/.local/share/applications"
     for a in "${LINK_APPS[@]}"; do [[ -e "$DOTS/applications/$a" ]] && link "$DOTS/applications/$a" "$HOME/.local/share/applications/$a"; done
     command -v update-desktop-database >/dev/null && update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+    # Dolphin/KIO resolve "open with" through KDE's own service cache (ksycoca), not the
+    # freedesktop mimeinfo db — a new .desktop file is invisible to them until this runs.
+    command -v kbuildsycoca6 >/dev/null && kbuildsycoca6 --noincremental >/dev/null 2>&1 || true
     # Claude Code: slash commands + skills + settings (secrets/state stay in ~/.claude, untracked)
     mkdir -p "$HOME/.claude"
     link "$DOTS/claude/commands"       "$HOME/.claude/commands"

@@ -87,6 +87,13 @@ Singleton {
         readonly property int wallpaperStripHeight: 158
         readonly property int wallpaperTileWidth: 224
 
+        // Image picker mode geometry. Narrower tiles than the wallpaper strip —
+        // these are arbitrary photos rather than 16:9 wallpapers, and the taller
+        // strip leaves room for the folder label under each filename.
+        readonly property int imagesWidth: 1180
+        readonly property int imagesStripHeight: 176
+        readonly property int imagesTileWidth: 190
+
         // The host window is sized to the largest footprint; the surface
         // morphs inside it.
         readonly property int hostWidth: wallpaperWidth

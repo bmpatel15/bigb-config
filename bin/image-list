@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# List image files across the usual image folders, newest first, one path per line.
+#
+# Backend for the Quickshell image picker (config/quickshell/overlay/ImageContent.qml),
+# which spans several folders rather than a single directory — hence a script instead of
+# the inline `find` the wallpaper picker uses.
+#
+#   image-list              print every image under the default roots
+#   image-list DIR...       print every image under the given roots instead
+#
+# Test hooks: IMAGE_LIST_ROOTS (colon-separated), IMAGE_LIST_MAXDEPTH.
+set -euo pipefail
+
+MAXDEPTH="${IMAGE_LIST_MAXDEPTH:-3}"
+
+if (($#)); then
+    ROOTS=("$@")
+elif [[ -n "${IMAGE_LIST_ROOTS:-}" ]]; then
+    IFS=':' read -r -a ROOTS <<<"$IMAGE_LIST_ROOTS"
+else
+    ROOTS=("$HOME/Pictures" "$HOME/Downloads" "$HOME/Desktop" "$HOME/Documents")
+fi
+
+# Only roots that exist — find errors out entirely on a missing one.
+present=()
+for r in "${ROOTS[@]}"; do [[ -d "$r" ]] && present+=("$r"); done
+((${#present[@]})) || exit 0
+
+EXTS=(png jpg jpeg webp gif avif heic heif jxl bmp tiff tif svg ico)
+name_expr=()
+for e in "${EXTS[@]}"; do name_expr+=(-iname "*.$e" -o); done
+unset 'name_expr[${#name_expr[@]}-1]' # drop the trailing -o
+
+# Prune dotdirs so a repo's .git (e.g. ~/Pictures/wallpaper/.git) isn't walked.
+# -printf '%T@\t%p' + sort -rn puts the most recent screenshot/download first, which
+# is nearly always what you're reaching for.
+find "${present[@]}" -maxdepth "$MAXDEPTH" \
+    -name '.*' -prune -o \
+    -type f \( "${name_expr[@]}" \) -printf '%T@\t%p\n' 2>/dev/null |
+    sort -rn | cut -f2-

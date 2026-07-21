@@ -21,6 +21,16 @@ Singleton {
     readonly property string wallpaperThumbDir: cacheDir + "/wallpaper-picker/thumbs"
     readonly property string wallpaperStateFile: cacheDir + "/wallpaper-picker/current"
 
+    // Image picker (see docs/image-viewer-setup.md). The listing spans several
+    // folders, so it lives in a script rather than an inline find like the
+    // wallpaper picker's single-directory one.
+    readonly property var imageListCmd: [home + "/.local/bin/image-list"]
+    function imageOpenCmd(path) {
+        // Opens just this file; init.lua's enable_adjacent pulls in its folder
+        // siblings, so arrow keys browse from wherever the image lives.
+        return ["swayimg", path];
+    }
+
     // Command argv arrays
     // -c backlight: without it brightnessctl falls back to the first `leds` device
     // (NIC/keyboard LEDs) on desktops with no panel, which makes Brightness.available

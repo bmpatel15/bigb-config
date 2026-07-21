@@ -12,7 +12,7 @@ import qs.config
 PanelWindow {
     id: host
 
-    // "" (closed) | "launcher" | "wallpaper"
+    // "" (closed) | "launcher" | "wallpaper" | "images"
     property string mode: ""
     readonly property bool open: mode !== ""
     // Sticky: which mode's size/content the surface renders. Not cleared on
@@ -23,6 +23,7 @@ PanelWindow {
     property bool rendering: false
 
     readonly property Item activeContent: mode === "wallpaper" ? wallpaperContent
+        : mode === "images" ? imageContent
         : mode === "launcher" ? launcherContent : null
 
     function focusedScreen() {
@@ -102,9 +103,13 @@ PanelWindow {
         // switch (and launcher filter resize) — NOT during open/close.
         width: host.renderMode === "wallpaper"
             ? Appearance.overlay.wallpaperWidth
+            : host.renderMode === "images"
+            ? Appearance.overlay.imagesWidth
             : Appearance.overlay.launcherWidth
         height: host.renderMode === "wallpaper"
             ? wallpaperContent.desiredHeight
+            : host.renderMode === "images"
+            ? imageContent.desiredHeight
             : launcherContent.desiredHeight
 
         Behavior on width {
@@ -185,6 +190,13 @@ PanelWindow {
             anchors.fill: parent
             overlay: host
             active: host.mode === "wallpaper"
+        }
+
+        ImageContent {
+            id: imageContent
+            anchors.fill: parent
+            overlay: host
+            active: host.mode === "images"
         }
     }
 }

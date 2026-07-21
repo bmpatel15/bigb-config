@@ -119,6 +119,14 @@ ShellRoot {
     }
 
     IpcHandler {
+        target: "imagepicker"
+
+        function toggle(): void {
+            overlay.toggleMode("images");
+        }
+    }
+
+    IpcHandler {
         target: "dashboard"
 
         function toggle(): void {

@@ -291,12 +291,16 @@ local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 -- logical px, tuned for the 1536x960 eDP-1 display).
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("pidof wlogout || wlogout -b 6 -T 360 -B 360 -L 25 -R 25"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
--- Image gallery: swayimg thumbnail grid over ~/Pictures (where screenshot.sh -> swappy
--- saves). Also the default image handler for Dolphin; see the float rule at the bottom.
--- -e enables recursion for this launch only, so the grid reaches ~/Pictures/wallpaper
--- and any other subfolders. Recursion stays off in init.lua so that opening a single
--- file from Dolphin doesn't scan every subdirectory of wherever that file happens to be.
-hl.bind(mainMod .. " + I", hl.dsp.exec_cmd("swayimg -g -e 'swayimg.imagelist.enable_recursive(true)' $HOME/Pictures"))
+-- Image picker: Quickshell bottom-overlay filmstrip spanning Pictures/Downloads/
+-- Desktop/Documents, newest first; Enter opens the pick in swayimg. Falls back to
+-- swayimg's own gallery over ~/Pictures if qs is down (-e turns on recursion for that
+-- launch only, since ~/Pictures holds images just in subfolders).
+hl.bind(
+	mainMod .. " + I",
+	hl.dsp.exec_cmd(
+		"qs ipc call imagepicker toggle || swayimg -g -e 'swayimg.imagelist.enable_recursive(true)' $HOME/Pictures"
+	)
+)
 hl.bind(secondMod .. " + F", hl.dsp.window.float({ action = "toggle" })) -- float toggle (moved off SUPER+V)
 -- Floating Ethereal-themed TUIs (see window rules at bottom). Binary `gazelle` confirmed post-install.
 hl.bind(secondMod .. " + B", hl.dsp.exec_cmd("ghostty --class=com.ethereal.BtTui -e bluetui")) -- bluetooth TUI
