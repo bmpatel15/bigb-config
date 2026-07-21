@@ -1,0 +1,93 @@
+{
+  "_README": [
+    "Optional. Every value here is the documented default — delete this file and",
+    "the skill behaves identically. Edit a value to override it.",
+    "Paths without a leading / or ~ are relative to the vault root.",
+    "Environment variables win over this file: $PKM (vault root),",
+    "$XDG_CACHE_HOME (corpus cache), $XDG_STATE_HOME (backups)."
+  ],
+
+  "vault_root": "~/Documents/BigB-PKM",
+
+  "folders": {
+    "vachanamrut": "03 - Literature Notes/Vachanamrut",
+    "connections": "03 - Literature Notes/Vachanamrut/Connections",
+    "expansions": "03 - Literature Notes/Vachanamrut/Expansions",
+    "permanent": "04 - Permanent Notes",
+    "quick_capture": "02 - Fleeting Notes",
+    "daily": "01 - Daily Notes",
+    "mocs": "00 - Home",
+    "templates": "09 - Templates",
+    "context": "10 - Context"
+  },
+
+  "search_paths": [
+    "03 - Literature Notes",
+    "04 - Permanent Notes",
+    "02 - Fleeting Notes",
+    "00 - Home",
+    "11 - Translations",
+    "10 - Context/satsang.md"
+  ],
+
+  "corpus": {
+    "index_path": "references/vachanamrut-index.tsv",
+    "cache_dir": "~/.cache/vachanamrut",
+    "trusted_local_text": null,
+    "_trusted_local_text": [
+      "Set to a directory or file holding an authorised complete Vachanamrut",
+      "text and the skill will prefer it over any network fetch. Expected shape:",
+      "one file per discourse named by canonical ref (e.g. 'Gadhada I-15.md'),",
+      "or a single file with '# <ref>' headings. See README 'Adding a trusted",
+      "complete Vachanamrut text'."
+    ],
+    "trusted_hosts": ["anirdesh.com", "www.anirdesh.com", "baps.org", "www.baps.org"]
+  },
+
+  "naming": {
+    "title_case": "sentence",
+    "ref_form": "hyphenated",
+    "strip_chars": ":/\\|#^[]"
+  },
+
+  "frontmatter": {
+    "type": "literature",
+    "source": "Vachanamrut",
+    "status": "inbox",
+    "review_interval": 7,
+    "tags": ["scripture", "vachanamrut", "connection"],
+    "add_aliases": false
+  },
+
+  "behaviour": {
+    "default_mode": "deep",
+    "default_write": false,
+    "max_candidates": 3,
+    "min_confidence_to_suggest_ref": "tentative",
+    "_min_confidence_to_suggest_ref": [
+      "Floor for naming a discourse number at all: 'tentative' | 'moderate' |",
+      "'high'. Raise it to make the skill stay silent about references it cannot",
+      "nearly confirm. Below the floor it reports 'unresolved'."
+    ],
+    "unresolved_link_policy": "plain-text",
+    "_unresolved_link_policy": [
+      "'plain-text' names a missing note without brackets (default; creates no",
+      "stubs). 'stub-link' would emit [[...]] for notes that do not exist —",
+      "only enable if you deliberately want unresolved links in the graph."
+    ],
+    "update_vachanamrut_backlinks": true,
+    "_update_vachanamrut_backlinks": [
+      "Even when true, a backlink is written only if the connection is",
+      "verified, the note exists, the link is absent, and it already has a",
+      "'## Links' section. MOCs are never touched."
+    ],
+    "create_block_refs": false,
+    "quick_capture_label": "Developed into",
+    "respect_qc_lock": true,
+    "_respect_qc_lock": [
+      "Take the flock shared with obsidian-capture and qc-process before",
+      "writing to a QC note. Turning this off risks corrupting a capture",
+      "session or a nightly Hermes run. Leave it on."
+    ]
+  }
+}

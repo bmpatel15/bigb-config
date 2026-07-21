@@ -3,7 +3,12 @@
 Everything here was read off the live vault. If the vault and this file ever disagree,
 **the vault wins** — re-check and update this file rather than forcing the old convention.
 
-Vault root: `$PKM`, default `~/Documents/BigB-PKM`. It is a git repo.
+Vault root: `$PKM`, default `~/Documents/BigB-PKM`.
+
+**Sync and safety.** The vault syncs via **Obsidian Sync**. A `.git` directory with a GitHub
+remote exists but is stale and no longer maintained, so **git is not a usable undo net** —
+do not assume a bad write can be rolled back. Treat every write as unrecoverable: never
+overwrite an existing file, keep edits additive, and prefer declining over guessing.
 
 ## The pipeline
 
