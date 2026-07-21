@@ -26,6 +26,19 @@ hl.monitor({
 	scale = "1.25",
 })
 
+-- PERF: pin DP-1 (LG UltraGear, 5120x2160) to 100Hz rather than its 165Hz max.
+-- 11 megapixels at 165Hz is ~1.8 Gpixel/s for a single composite pass, which the
+-- UHD 770 cannot hold; the result is missed deadlines rather than 165 real frames.
+-- 100.03 is a native mode on this panel and cuts GPU load ~40%. The catch-all
+-- above still handles any other display at its preferred mode.
+-- To go back to 165Hz: change mode to "5120x2160@165.058" (or delete this block).
+hl.monitor({
+	output = "DP-1",
+	mode = "5120x2160@100.03",
+	position = "auto",
+	scale = "2",
+})
+
 ---------------------
 ---- MY PROGRAMS ----
 ---------------------
@@ -142,11 +155,27 @@ hl.config({
 			color = 0xee1a1a1a,
 		},
 
+		-- size/passes are deliberately high: this is what makes an 0.85-opacity
+		-- window read as frosted glass rather than merely see-through. Turning
+		-- these DOWN makes windows look MORE transparent, not less. Don't.
+		--
+		-- PERF: dual-Kawase downsamples as it goes (pass 1 at 1/2 res, pass 2 at
+		-- 1/4, pass 3 at 1/8...), so cost is a geometric series dominated by the
+		-- first pass — passes 3-4 are close to free. The cheap win is xray below,
+		-- not lowering these.
 		blur = {
 			enabled = true,
 			size = 6,
 			passes = 4,
 			vibrancy = 0.1696,
+
+			-- PERF: blur the wallpaper behind windows rather than the window stack.
+			-- The wallpaper is static, so new_optimizations caches the blurred
+			-- result and reuses it instead of recomputing every frame — which is
+			-- what matters on an Intel UHD 770 driving 5120x2160.
+			-- Tradeoff: stacked transparent windows no longer blur each other.
+			-- Set false if you want terminal-over-terminal to blur.
+			xray = true,
 		},
 	},
 
@@ -232,6 +261,11 @@ hl.config({
 	misc = {
 		force_default_wallpaper = 0, -- Set to 0 or 1 to disable the anime mascot wallpapers
 		disable_hyprland_logo = true, -- If true disables the random hyprland logo / anime girl background. :(
+
+		-- PERF: VRR (adaptive sync). Without it, any frame that misses the refresh
+		-- deadline is held to the next full refresh, so one slow frame reads as
+		-- judder. The LG UltraGear supports VRR. 1 = always on, 2 = fullscreen only.
+		vrr = 1,
 	},
 })
 

@@ -37,7 +37,11 @@ confirm-close-surface = false
 
 # Subtle comet-tail cursor trail.
 # Ghostty has no native cursor trail; this is a GLSL post-process shader.
-# Path is relative to ~/.config/ghostty/. `always` keeps it animating when
-# unfocused so the tail doesn't freeze (small CPU cost — drop to `true` to save power).
+# Path is relative to ~/.config/ghostty/.
+# PERF: this was `always`, which redraws the full window at monitor refresh
+# forever — even unfocused, even with nothing changing. Measured at a constant
+# 3.1% CPU on a completely idle terminal. At 5120x2160 on an Intel UHD 770 that
+# is not a "small cost". `true` keeps the trail animating while focused and lets
+# it idle otherwise, which is the only time you can actually see it anyway.
 custom-shader = shaders/cursor_tail.glsl
-custom-shader-animation = always
+custom-shader-animation = true
