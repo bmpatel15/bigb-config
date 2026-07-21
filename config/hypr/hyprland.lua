@@ -291,6 +291,12 @@ local closeWindowBind = hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 -- logical px, tuned for the 1536x960 eDP-1 display).
 hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("pidof wlogout || wlogout -b 6 -T 360 -B 360 -L 25 -R 25"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
+-- Image gallery: swayimg thumbnail grid over ~/Pictures (where screenshot.sh -> swappy
+-- saves). Also the default image handler for Dolphin; see the float rule at the bottom.
+-- -e enables recursion for this launch only, so the grid reaches ~/Pictures/wallpaper
+-- and any other subfolders. Recursion stays off in init.lua so that opening a single
+-- file from Dolphin doesn't scan every subdirectory of wherever that file happens to be.
+hl.bind(mainMod .. " + I", hl.dsp.exec_cmd("swayimg -g -e 'swayimg.imagelist.enable_recursive(true)' $HOME/Pictures"))
 hl.bind(secondMod .. " + F", hl.dsp.window.float({ action = "toggle" })) -- float toggle (moved off SUPER+V)
 -- Floating Ethereal-themed TUIs (see window rules at bottom). Binary `gazelle` confirmed post-install.
 hl.bind(secondMod .. " + B", hl.dsp.exec_cmd("ghostty --class=com.ethereal.BtTui -e bluetui")) -- bluetooth TUI
@@ -485,4 +491,16 @@ hl.window_rule({
 	size = "monitor_w*0.5 monitor_h*0.65",
 	center = true,
 	animation = "slide left", -- slide in from the left edge (also slides out left on close)
+})
+
+-- Image viewer (swayimg). Covers both launch paths — Dolphin double-click and the
+-- SUPER+I gallery — because both run plain `swayimg`, whose default Wayland app_id is
+-- "swayimg". (swayimg's flag is --appid, not --class, so there's no com.ethereal.* here.)
+hl.window_rule({
+	name = "float-image-viewer",
+	match = { class = "swayimg" },
+
+	float = true,
+	size = "monitor_w*0.7 monitor_h*0.75",
+	center = true,
 })

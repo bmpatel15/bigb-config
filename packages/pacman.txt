@@ -47,6 +47,7 @@ intel-media-driver
 intel-ucode
 jq
 kdegraphics-thumbnailers
+kimageformats
 kio-extras
 kitty
 lazygit
@@ -81,6 +82,7 @@ podman-docker
 power-profiles-daemon
 pyright
 qt5-wayland
+qt6-imageformats
 qt6-wayland
 quickshell
 reflector
@@ -95,6 +97,7 @@ snapper
 sof-firmware
 sudo
 swappy
+swayimg
 swaync
 system-config-printer
 tailscale

@@ -1,0 +1,22 @@
+[Desktop Entry]
+# Local override of /usr/share/applications/swayimg.desktop (same basename wins).
+#
+# Two changes vs. the packaged file:
+#   1. The package ships NoDisplay=true, which hides swayimg from Dolphin's
+#      "Open With" menu and from app launchers. Dropping it makes the viewer
+#      selectable instead of only reachable via a mimeapps.list default.
+#   2. MimeType is extended — the packaged list has image/heif but NOT
+#      image/heic (the type iPhone photos actually use), and omits the raw
+#      formats swayimg decodes through libraw.
+#
+# Tracked in bigb-config (LINK_APPS in install.sh). See docs/image-viewer-setup.md.
+Type=Application
+Name=Image Viewer
+GenericName=Image viewer
+Comment=View images with swayimg
+Icon=swayimg
+Exec=swayimg %F
+Terminal=false
+Categories=Graphics;Viewer;
+StartupNotify=false
+MimeType=image/avif;image/avif-sequence;image/bmp;image/gif;image/heic;image/heic-sequence;image/heif;image/heif-sequence;image/jp2;image/jpeg;image/jpg;image/jpx;image/jxl;image/pbm;image/pjpeg;image/png;image/qoi;image/svg+xml;image/tiff;image/vnd.microsoft.icon;image/webp;image/x-adobe-dng;image/x-bmp;image/x-canon-cr2;image/x-exr;image/x-fuji-raf;image/x-nikon-nef;image/x-olympus-orf;image/x-panasonic-rw2;image/x-png;image/x-portable-anymap;image/x-portable-bitmap;image/x-portable-graymap;image/x-portable-pixmap;image/x-sony-arw;image/x-targa;image/x-tga;

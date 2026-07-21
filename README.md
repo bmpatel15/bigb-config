@@ -132,7 +132,8 @@ ly-status        # read-only diagnostic (services, autologin arming, config sani
 | `packages/pacman.txt` | Explicit packages (`pacman -Qqe`) — repo + AUR, fed to `yay` |
 | `packages/aur.txt` | Foreign/AUR packages (`pacman -Qqm`) — reference/audit list |
 | `bin/` | User scripts, LINKED into `~/.local/bin` (quick-capture, `qc-process`, `ly-status`) |
-| `docs/` | Machine docs (Ly display-manager / autologin setup) |
+| `applications/` | Desktop entries, LINKED into `~/.local/share/applications` — these override same-named files in `/usr/share/applications` (currently `swayimg.desktop`) |
+| `docs/` | Machine docs (Ly autologin, Quickshell plan, adaptive-theme design, image viewer setup) |
 | `setup/` | Extra one-time setup scripts (root system setup, Chromium profiles, `ethereal-kde.sh` + its `EtherealDark.colors` / `user-places.xbel.seed` assets) |
 | `config/systemd/user/` | User systemd units (`system-maintenance`, `qc-process` timers) |
 

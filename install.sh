@@ -18,7 +18,8 @@
 #
 # Two tracking strategies (see arrays below):
 #   LINKED  — configs WE hand-edit; ~/.config/<x> is a symlink into this repo,
-#             so edits auto-track in git.
+#             so edits auto-track in git. Also covers ~/.local/bin scripts and
+#             ~/.local/share/applications desktop entries (LINK_APPS).
 #   COPIED  — configs APPS rewrite via temp-file+rename (KDE/GTK/mime); a symlink
 #             would get detached, so these are tracked as copies and synced.
 
@@ -28,10 +29,13 @@ DOTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .zprofile .p10k.zsh .gitconfig)
-LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf fastfetch uwsm quickshell)
+LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf fastfetch uwsm quickshell swayimg)
 LINK_BIN=(obsidian-capture obsidian-capture-popup qc-process ly-status)
 # PKM note-processing commands + daily-routine greeter (vault: ~/Documents/BigB-PKM).
 LINK_BIN_PKM=(today-note ot rollover on og sn tasks week-note obs pkm-daily)
+# Desktop entries -> ~/.local/share/applications. These override same-named files in
+# /usr/share/applications; mimeapps.list points at them, so they must exist on a fresh box.
+LINK_APPS=(swayimg.desktop)
 COPY_CONFIG=(gtk-3.0 gtk-4.0 nwg-look xsettingsd btop mimeapps.list dolphinrc kdeglobals pavucontrol.ini)
 
 log()  { printf '\n\033[1;34m==>\033[0m \033[1m%s\033[0m\n' "$*"; }
@@ -55,6 +59,9 @@ link_configs() {
     for d in "${LINK_CONFIG[@]}"; do [[ -e "$DOTS/config/$d" ]] && link "$DOTS/config/$d" "$HOME/.config/$d"; done
     mkdir -p "$HOME/.local/bin"
     for b in "${LINK_BIN[@]}" "${LINK_BIN_PKM[@]}"; do [[ -e "$DOTS/bin/$b" ]] && link "$DOTS/bin/$b" "$HOME/.local/bin/$b"; done
+    mkdir -p "$HOME/.local/share/applications"
+    for a in "${LINK_APPS[@]}"; do [[ -e "$DOTS/applications/$a" ]] && link "$DOTS/applications/$a" "$HOME/.local/share/applications/$a"; done
+    command -v update-desktop-database >/dev/null && update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
     # Claude Code: slash commands + skills + settings (secrets/state stay in ~/.claude, untracked)
     mkdir -p "$HOME/.claude"
     link "$DOTS/claude/commands"       "$HOME/.claude/commands"
