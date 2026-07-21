@@ -14,6 +14,7 @@ breeze
 brightnessctl
 btop
 btrfs-progs
+cava
 chromium
 cliphist
 cups
@@ -81,6 +82,7 @@ power-profiles-daemon
 pyright
 qt5-wayland
 qt6-wayland
+quickshell
 reflector
 ripgrep
 rofi
@@ -101,10 +103,13 @@ tesseract-data-eng
 tesseract-data-guj
 thermald
 tmux
+tree
 ttf-jetbrains-mono-nerd
 unzip
 uv
 uwsm
+vlc
+vlc-plugins-all
 vulkan-intel
 waybar
 wget
