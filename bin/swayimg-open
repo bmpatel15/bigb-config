@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# swayimg launcher that tolerates file:// URLs.
+#
+# Why this exists: Dolphin/KIO hand the selected file to the application as a
+# file:// URL, even though swayimg.desktop uses Exec=%F (which is specified to
+# mean local paths). swayimg accepts only plain paths — given a URL it treats it
+# as a *relative* path, resolves it against the cwd, finds nothing, and exits:
+#
+#   WARNING: File /home/you/.config/file:/home/you/Downloads/a.jpg not found, skipped
+#   WARNING: Image list is empty, exit
+#
+# Exit status 0 and no window, which looks exactly like double-click doing
+# nothing. Normalizing here keeps swayimg.desktop working from any launcher,
+# whether it passes paths or URLs.
+#
+#   swayimg-open FILE|file://URL ...
+#
+# Test hook: SWAYIMG_OPEN_DRYRUN=1 prints the normalized argv instead of running.
+set -euo pipefail
+
+decode() { # percent-decode a URL path component
+    local s=$1
+    # Protect literal backslashes before %XX -> \xXX, or printf %b would eat them.
+    s=${s//\\/\\\\}
+    printf '%b' "${s//%/\\x}"
+}
+
+args=()
+for a in "$@"; do
+    case "$a" in
+        file://*) args+=("$(decode "${a#file://}")") ;;
+        *) args+=("$a") ;;
+    esac
+done
+
+if [[ -n "${SWAYIMG_OPEN_DRYRUN:-}" ]]; then
+    printf '%s\n' "${args[@]}"
+    exit 0
+fi
+
+exec swayimg "${args[@]}"

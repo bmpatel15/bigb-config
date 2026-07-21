@@ -8,6 +8,15 @@
 #   2. MimeType is extended — the packaged list has image/heif but NOT
 #      image/heic (the type iPhone photos actually use), and omits the raw
 #      formats swayimg decodes through libraw.
+#   3. Exec goes through bin/swayimg-open, which strips file:// URLs. Dolphin
+#      passes a URL despite %F meaning local paths, and swayimg reads that as a
+#      relative path, finds nothing, and exits silently — double-click appears
+#      to do nothing at all. See docs/image-viewer-setup.md §6.
+#
+# The sh -c wrapper is needed because ~/.local/bin is NOT on the PATH that
+# systemd/KIO launch desktop entries with (it is /usr/local/sbin:/usr/local/bin:
+# /usr/sbin:/usr/bin:...). $HOME is set there, so expand through it rather than
+# hardcoding a username.
 #
 # Tracked in bigb-config (LINK_APPS in install.sh). See docs/image-viewer-setup.md.
 Type=Application
@@ -15,7 +24,7 @@ Name=Image Viewer
 GenericName=Image viewer
 Comment=View images with swayimg
 Icon=swayimg
-Exec=swayimg %F
+Exec=sh -c "exec \\"\\$HOME/.local/bin/swayimg-open\\" \\"\\$@\\"" swayimg-open %F
 Terminal=false
 Categories=Graphics;Viewer;
 StartupNotify=false

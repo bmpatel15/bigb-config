@@ -3,7 +3,8 @@
 Status: **implemented, verified 2026-07-20** (Arch + Hyprland, `jarvis`).
 
 Covers how images open on this machine: which viewer, how it is themed, how the MIME
-associations are wired, and the two non-obvious gotchas that will bite on a rebuild.
+associations are wired, the SUPER+I picker, and the five non-obvious gotchas (§4–§8) that
+will bite on a rebuild. §6 is the one that actually broke double-click from Dolphin.
 
 ## 1. The problem
 
@@ -55,7 +56,7 @@ fully replaces the system one. Changes vs. packaged:
   libraw types (`image/x-adobe-dng`, `x-canon-cr2`, `x-nikon-nef`, `x-sony-arw`,
   `x-panasonic-rw2`, `x-olympus-orf`, `x-fuji-raf`).
 
-`~/.local/share/applications/` was previously untracked by this repo — see §7.
+`~/.local/share/applications/` was previously untracked by this repo — see §10.
 
 ## 5. Gotcha: Dolphin resolves through ksycoca, not the freedesktop db
 
@@ -71,7 +72,41 @@ If it ever recurs, run that and restart Dolphin.
 Note `kde-open` is not installed here, so `xdg-open` falls through to `gio` — meaning a
 successful `xdg-open` test does **not** prove Dolphin will work. They are different paths.
 
-## 6. Gotcha: `enable_adjacent` is off by default
+## 6. Gotcha: swayimg does not understand `file://` URLs
+
+**This is what actually broke double-click**, not §5. Dolphin hands the file to the
+application as a `file://` URL even though `Exec=%F` is specified to mean local paths.
+swayimg accepts only plain paths — given a URL it treats it as a *relative* path:
+
+```
+$ swayimg 'file:///home/you/Downloads/a.jpg'
+WARNING: File /home/you/.config/file:/home/you/Downloads/a.jpg not found, skipped
+WARNING: Image list is empty, exit
+```
+
+Exit status 0, no window, no error dialog — indistinguishable from nothing happening.
+
+Fix: `Exec` goes through `bin/swayimg-open`, which strips `file://` and percent-decodes
+(`%20` → space) before handing off, and passes plain paths straight through.
+
+Two traps in wiring that up:
+
+- **`~/.local/bin` is not on the PATH desktop entries are launched with.** That PATH is
+  `/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:…` — no home directory at
+  all. `HOME` *is* set, so the Exec expands through it rather than hardcoding a username.
+- **The desktop-entry spec forbids single quotes and bare `$` in `Exec`.** Inside a
+  double-quoted value, `"` and `$` must each be backslash-escaped, and a literal backslash
+  is written `\\`. Hence the dense final form:
+
+  ```
+  Exec=sh -c "exec \\"\\$HOME/.local/bin/swayimg-open\\" \\"\\$@\\"" swayimg-open %F
+  ```
+
+  Always re-run `desktop-file-validate` after touching this line — it catches both
+  mistakes immediately, and `gio launch <desktop-file> <image>` then proves the parsed
+  Exec actually starts a window.
+
+## 7. Gotcha: `enable_adjacent` is off by default
 
 `swayimg.imagelist.enable_adjacent` defaults to **false**, meaning opening a single file
 from Dolphin gives you that one file and nothing to navigate to — a dead end. `init.lua`
@@ -80,9 +115,9 @@ Verified: opening one wallpaper yields a list of 184.
 
 Recursion (`enable_recursive`) is deliberately left **off** in `init.lua`, so that opening
 a file in e.g. `~/Downloads` doesn't scan every subdirectory beneath it. Only the SUPER+I
-*fallback* turns it on, via `-e` — see §8.
+*fallback* turns it on, via `-e` — see §9.
 
-## 7. Gotcha: `set_fix_scale` throws in gallery mode
+## 8. Gotcha: `set_fix_scale` throws in gallery mode
 
 The upstream example config suggests this for tiling compositors:
 
@@ -97,7 +132,7 @@ Used verbatim it errors on every resize when the window is in gallery or slidesh
 happens when starting with `swayimg -g`. `init.lua` guards it with
 `if swayimg.get_mode() == "viewer" then`.
 
-## 8. SUPER+I — the Quickshell image picker
+## 9. SUPER+I — the Quickshell image picker
 
 SUPER+I opens a filmstrip in the Quickshell bottom overlay, the same morphing shelf as the
 app launcher (SUPER+Space) and wallpaper picker (SUPER+SHIFT+W) — a new `"images"` mode in
@@ -128,7 +163,7 @@ qs ipc call imagepicker toggle || swayimg -g -e 'swayimg.imagelist.enable_recurs
 The `-e` recursion is needed only in that fallback, because `~/Pictures` has no loose
 images — everything is under `~/Pictures/wallpaper/`, so a non-recursive gallery opens empty.
 
-## 9. Where everything lives
+## 10. Where everything lives
 
 | Path | Tracking | Purpose |
 |---|---|---|
@@ -137,6 +172,7 @@ images — everything is under `~/Pictures/wallpaper/`, so a non-recursive galle
 | `config/mimeapps.list` | COPIED (`COPY_CONFIG`) | `image/*` → `swayimg.desktop` |
 | `config/hypr/hyprland.lua` | LINKED | float rule + SUPER+I keybind |
 | `bin/image-list` | LINKED (`LINK_BIN`) | multi-folder listing for the picker |
+| `bin/swayimg-open` | LINKED (`LINK_BIN`) | strips `file://` URLs before swayimg (§6) |
 | `config/quickshell/overlay/ImageContent.qml` | LINKED | the picker UI |
 
 `LINK_APPS` is new. `~/.local/share/applications/` had no tracking at all before this —
@@ -151,7 +187,7 @@ The Hyprland rule matches `class = "swayimg"` — the default Wayland app_id —
 covers both the Dolphin and keybind launch paths. Note swayimg's flag is `--appid`, not
 `--class`, which is why there is no `com.ethereal.*` class here like the Ghostty TUIs use.
 
-## 10. Verification
+## 11. Verification
 
 ```bash
 swayimg --version                                     # 5.4
@@ -160,6 +196,11 @@ for t in image/png image/heic image/svg+xml; do xdg-mime query default "$t"; don
 timeout 3 swayimg --verbose ~/Pictures/wallpaper 2>&1 | grep -i error   # silent
 image-list | wc -l                                    # non-zero, newest first
 qs ipc show | grep -A1 imagepicker                    # target registered
+
+# the two that actually catch a broken double-click:
+desktop-file-validate ~/.local/share/applications/swayimg.desktop   # silent
+gio launch ~/.local/share/applications/swayimg.desktop ~/Downloads/*.jpg
+SWAYIMG_OPEN_DRYRUN=1 swayimg-open 'file:///tmp/a%20b.png'          # -> /tmp/a b.png
 ```
 
 Then: double-click an image in Dolphin **from a few different folders**, Downloads
@@ -168,7 +209,7 @@ included (opens floating and centered, not in Chromium); `hyprctl clients` shows
 the filmstrip with selection on the first (newest) tile; typing a folder name filters to
 it; Enter opens the pick.
 
-## 11. Rollback
+## 12. Rollback
 
 ```bash
 sudo pacman -Rns swayimg

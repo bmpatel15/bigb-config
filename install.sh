@@ -30,7 +30,7 @@ BACKUP="$HOME/.bigb-config-backup-$(date +%Y%m%d-%H%M%S)"
 
 LINK_HOME=(.zshrc .zprofile .p10k.zsh .gitconfig)
 LINK_CONFIG=(hypr ghostty waybar rofi nvim swaync zathura wlogout systemd tmux yazi gazelle chromium-flags.conf fastfetch uwsm quickshell swayimg)
-LINK_BIN=(obsidian-capture obsidian-capture-popup qc-process ly-status image-list)
+LINK_BIN=(obsidian-capture obsidian-capture-popup qc-process ly-status image-list swayimg-open)
 # PKM note-processing commands + daily-routine greeter (vault: ~/Documents/BigB-PKM).
 LINK_BIN_PKM=(today-note ot rollover on og sn tasks week-note obs pkm-daily)
 # Desktop entries -> ~/.local/share/applications. These override same-named files in
