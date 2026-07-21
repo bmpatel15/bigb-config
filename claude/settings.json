@@ -5,5 +5,10 @@
     "vercel@claude-plugins-official": true
   },
   "effortLevel": "xhigh",
-  "theme": "dark"
+  "theme": "dark",
+  "voiceEnabled": true,
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  }
 }
