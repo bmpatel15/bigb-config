@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# py: create-or-attach the `py` tmux session for Python practice.
+#   window "code": two terminal panes on top (left | right) + a wide bottom
+#                  pane for running code, all rooted at the learning dir.
+#   window "moc" : the Python Learning MOC note open in nvim.
+set -euo pipefail
+
+DIR="${PYLEARN:-$HOME/Projects/python-learning}"
+MOC="${PKM:-$HOME/Documents/BigB-PKM}/03 - Literature Notes/AI Engineering/03 Python/Python Learning MOC.md"
+SESSION="py"
+
+if ! command -v tmux >/dev/null; then
+	echo "py: tmux is required." >&2
+	exit 1
+fi
+
+if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+	# window 1 "code": the 3-pane practice workspace
+	tmux new-session  -d -s "$SESSION" -n code -c "$DIR"   # first pane -> top-left
+	tmux split-window -v -l 30% -t "$SESSION" -c "$DIR"    # wide bottom pane (run code)
+	tmux select-pane  -t "$SESSION" -U                     # back up to the top pane
+	tmux split-window -h -t "$SESSION" -c "$DIR"           # split top into left | right
+	tmux select-pane  -t "$SESSION" -L                     # land in the left pane
+
+	# window 2 "moc": the Python Learning MOC in nvim
+	tmux new-window   -t "$SESSION" -n moc -c "$(dirname "$MOC")"
+	tmux send-keys    -t "$SESSION:moc" "nvim '$MOC'" C-m
+
+	tmux select-window -t "$SESSION:code"                  # open on the code window
+fi
+
+if [[ -n "${TMUX:-}" ]]; then
+	exec tmux switch-client -t "$SESSION"
+else
+	exec tmux attach -t "$SESSION"
+fi
